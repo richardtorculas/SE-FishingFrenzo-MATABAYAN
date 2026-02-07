@@ -56,3 +56,10 @@ The project focuses specifically on the Philippine disaster landscape to ensure 
 
 ---
 *Developed as a collaborative effort to improve community disaster preparedness in the Philippines.*
+
+## Members & Github Accounts
+Adrian Paolo Follante - Gojatora
+Ram Andrei Manalo - ramandrei
+Renzo Emmanuel Ramos - Renzo-Emmanuel
+France Raphael Rivera - francerivera
+Richard Torculas - richardtorculas
