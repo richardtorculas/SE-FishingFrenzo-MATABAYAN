@@ -36,10 +36,10 @@ The project focuses specifically on the Philippine disaster landscape to ensure 
 ## 👥 The Team
 | Name | Role | Responsibility |
 | :--- | :--- | :--- |
-| **Adrian Paolo Follante** | Project Manager | Project oversight, leadership, and requirements monitoring. |
+| **Adrian Paolo Follante** | Project Manager + Software Developer | Project oversight, leadership, and requirements monitoring. |
 | **Ram Andrei Manalo** | Requirements Analyst | Documentation of functional/non-functional requirements and SRS maintenance. |
 | **Renzo Emmanuel Ramos** | Software Developer | Full-stack development, API integration, and system testing. |
-| **France Raphael Rivera** | Quality Assurance | Test planning, defect reporting, and performance verification. |
+| **France Raphael Rivera** | Quality Assurance + Software Developer | Test planning, defect reporting, and performance verification. |
 | **Richard Torculas** | Software Designer + DevOps | System architecture, UI/UX design, and deployment/CI processes. |
 
 ## 📅 Roadmap & Milestones
