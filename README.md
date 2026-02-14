@@ -28,9 +28,9 @@ The project focuses specifically on the Philippine disaster landscape to ensure 
 * **Informational Only:** The platform is a dissemination tool and cannot be used for direct emergency rescue dispatch or 911 services.
 
 ## 🛠️ Tech Stack
-* **Frontend:** HTML5, CSS3, JavaScript / React
-* **Backend:** PHP
-* **Database:** MySQL
+* **Frontend:** HTML5, CSS3, JavaScript / React / Tailwind
+* **Backend:** Node.js / Express.js
+* **Database:** MongoDB
 * **Integrations:** Government Weather/Disaster APIs & RSS Feeds
 
 ## 👥 The Team
@@ -73,7 +73,8 @@ This architectural style was selected to support real-time data processing, syst
 ## High-Level Architecture Diagram
 
 *(Refer to the MataBayan High-Level MVC Architecture Diagram illustrating the interaction between users, the MVC components, external government data sources, and notification services.)*
-<img width="676" height="719" alt="High-Level Architecture Diagram - MVC drawio" src="https://github.com/user-attachments/assets/57f93be9-eb62-4a64-b5ed-2d1193157a06" />
+<img width="676" height="719" alt="High-Level Architecture Diagram - MVC drawio (2)" src="https://github.com/user-attachments/assets/004cf100-d3f5-4fbf-861e-b505de727d81" />
+
 
 ---
 
