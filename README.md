@@ -44,8 +44,8 @@ The project focuses specifically on the Philippine disaster landscape to ensure 
 
 ## 📅 Roadmap & Milestones
 - [ ] **Project Start:** February 1, 2026
-- [ ] **Requirements Finalized:** February 7, 2026
-- [ ] **Design Completed:** February 14, 2026
+- [ ] **Requirements Finalized:** February 14, 2026
+- [ ] **Design Completed:** February 21, 2026
 - [ ] **Testing Phase:** April 11, 2026
 - [ ] **Project Completion:** May 2, 2026
 
