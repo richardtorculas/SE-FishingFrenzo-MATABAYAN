@@ -25,3 +25,43 @@ We followed consistent coding standards by using clear naming conventions, addin
 - **Ramos, Renzo Emmanuel** – Ticket 6: MataBayan Disaster Dashboard (Branch)
 - **Rivera, France Raphael** –  Prelim Exam Document (Main)
 - **Torculas, Richard** –  Ticket 7: Database Creation (Branch)
+
+## Security Consideration 1: Password Protection & Data Storage
+
+### Where the Risk Exists
+- During user registration (sign-up page)  
+- When storing user credentials in MongoDB  
+- During login authentication  
+- In the users collection inside the database  
+
+**Explanation:**  
+The risk exists during user registration, login authentication, and when storing user data in the MongoDB users collection. When a user signs up, their password is initially entered as plain text, which can be vulnerable if not handled properly. If passwords are saved in plain text, anyone who gains unauthorized access to the database could see all user passwords. Improper handling of password comparison during login could also expose sensitive information or allow attackers to bypass security. Because all user credentials are stored in the users collection, this part of the system is a critical security point that must be protected.
+
+### How We Addressed / Minimized the Risk
+- Passwords are hashed before being stored in MongoDB  
+- The database only stores the hashed version, not the actual password  
+- During login, the entered password is compared against the hashed password using secure comparison methods  
+
+**Explanation:**  
+We minimized this risk by hashing passwords before storing them in MongoDB. Only the hashed version of each password is saved, which makes it extremely difficult to reverse back to the original password. During login, the entered password is securely hashed and compared to the stored hashed version rather than retrieving or exposing the original password. This protects user credentials even if the database is compromised and reduces the risk of password theft.
+
+---
+
+## Security Consideration 2: Input Validation & Injection Attacks
+
+### Where the Risk Exists
+- User input fields such as email and password in the sign-up and login forms  
+- Backend API endpoints that process authentication requests  
+- MongoDB queries using user-provided input  
+
+**Explanation:**  
+The risk exists in the user input fields, backend API endpoints that handle authentication, and MongoDB queries using user-provided data. Attackers could submit malicious input, potentially causing NoSQL injection attacks, unsafe data storage, or exploitation of weak query handling. Since authentication relies on user input, these areas must be secured.
+
+### How We Addressed / Minimized the Risk
+- Implemented frontend validation in React  
+- Added backend validation to ensure:  
+  - Email follows proper format  
+  - Password meets minimum length requirements  
+
+**Explanation:**  
+We minimized this risk by validating input on both frontend and backend. Frontend validation ensures required fields and correct formats before submission, while backend validation prevents invalid or malicious data from bypassing security. Together, these measures reduce injection attacks and maintain safe database operations.
