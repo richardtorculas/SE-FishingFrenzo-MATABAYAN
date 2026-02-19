@@ -65,3 +65,36 @@ The risk exists in the user input fields, backend API endpoints that handle auth
 
 **Explanation:**  
 We minimized this risk by validating input on both frontend and backend. Frontend validation ensures required fields and correct formats before submission, while backend validation prevents invalid or malicious data from bypassing security. Together, these measures reduce injection attacks and maintain safe database operations.
+
+## Code Review & Reflection
+
+### One Strength of the Current Codebase
+**Clear separation between frontend and backend responsibilities**  
+
+**Explanation:**  
+The React frontend handles the user interface and user actions, while the backend manages authentication and communicates with MongoDB. This separation makes the system easier to manage, update, and debug. It also prepares the project for future sprints, such as adding disaster data and integrating external APIs.
+
+### One Area for Improvement
+**Error handling and user feedback could be improved**  
+
+**Explanation:**  
+Currently, some error messages are too general and may not clearly explain what went wrong. Users may not know if their email is already registered or if there was a network issue. Improvements include providing specific error messages, adding loading indicators during login or sign-up, and improving backend error logging for easier debugging.
+
+---
+
+## Lessons Learned During Implementation
+
+### Authentication is complex
+- Authentication involves more than just checking if a password matches.  
+- Passwords must be hashed and compared securely to protect user data.  
+- Even small mistakes in authentication can create serious security risks.  
+
+### Structuring the database correctly early on helps future scalability
+- Designing the database properly from the beginning makes it easier to add new features later.  
+- A well-planned user schema allows us to expand the system without major changes.  
+- This will help when we add disaster data, integrate external APIs, or add different user roles.  
+
+### Secure coding practices must be integrated during development
+- Security should always be considered while building the system.  
+- Adding security later can be harder and may require rewriting code.  
+- Building securely from the start and following proper coding practices saves time and prevents future problems.
