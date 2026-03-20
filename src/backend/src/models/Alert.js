@@ -60,6 +60,14 @@ const alertSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
     // When the alert was created/received
+  },
+
+  // ========== EARTHQUAKE-SPECIFIC DATA ==========
+  metadata: {
+    type: Object,
+    // For earthquakes: magnitude, depth, latitude, longitude, threatLevel, etc.
+    // For typhoons: windSpeed, category, direction, etc.
+    // Flexible schema for different disaster types
   }
 });
 

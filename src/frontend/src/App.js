@@ -9,6 +9,7 @@ import SignUp from './components/auth/SignUp';
 import Dashboard from './pages/Dashboard';
 import AlertDashboard from './pages/AlertDashboard';
 import AdminUsers from './pages/AdminUsers';
+import EarthquakeDashboard from './pages/EarthquakeDashboard';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/alerts" element={<AlertDashboard />} />
+            <Route path="/earthquakes" element={<EarthquakeDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route
               path="/dashboard"

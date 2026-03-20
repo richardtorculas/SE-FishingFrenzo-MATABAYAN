@@ -24,6 +24,9 @@ const Navbar = () => {
           <div className="flex items-center gap-6">
             <Link to="/" className="hover:text-blue-200 transition">Home</Link>
             <Link to="/alerts" className="hover:text-blue-200 transition">Alerts</Link>
+            <Link to="/earthquakes" className="flex items-center gap-1 hover:text-blue-200 transition">
+              🌍 Earthquakes
+            </Link>
             
             {user ? (
               <>

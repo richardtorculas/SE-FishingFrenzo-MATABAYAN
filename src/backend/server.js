@@ -29,6 +29,12 @@ const connectDB = require('./src/config/database');
 const authRoutes = require('./src/routes/authRoutes');
 const alertRoutes = require('./src/routes/alertRoutes');
 const userRoutes = require('./src/routes/userRoutes');
+const earthquakeRoutes = require('./src/routes/earthquakeRoutes');
+
+// Services
+const cron = require('node-cron');
+const { fetchEarthquakeData } = require('./src/services/phivolcsService');
+const Alert = require('./src/models/Alert');
 
 // ========== EXPRESS APP INITIALIZATION ==========
 const app = express();
@@ -80,6 +86,26 @@ app.use('/api/alerts', alertRoutes);
  * Endpoints: / (get all users)
  */
 app.use('/api/users', userRoutes);
+app.use('/api/earthquakes', earthquakeRoutes);
+
+// ========== PHIVOLCS CRON JOB ==========
+// Fetch latest earthquake data every 5 minutes
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    const earthquakeData = await fetchEarthquakeData();
+    for (const eq of earthquakeData) {
+      const existing = await Alert.findOne({
+        type: 'Earthquake',
+        location: eq.location,
+        timestamp: eq.timestamp
+      });
+      if (!existing) await Alert.create(eq);
+    }
+    console.log('🌍 PHIVOLCS earthquake data updated');
+  } catch (err) {
+    console.error('❌ PHIVOLCS cron error:', err.message);
+  }
+});
 
 // ========== HEALTH CHECK ENDPOINT ==========
 app.get('/health', (req, res) => {
