@@ -1,49 +1,59 @@
-# MataBayan - Testing Suite
+# MataBayan – Test Suite
 
-## Test Structure
+## Structure
 
 ```
 tests/
-├── unit/          # Unit tests (coming April 11, 2026)
-└── integration/   # Integration tests (coming April 11, 2026)
+├── automation/
+│   ├── test_landing.py   # Landing page UI tests
+│   ├── test_login.py     # Login flow tests (5 cases)
+│   └── test_signup.py    # Signup flow tests
+└── README.md
 ```
 
-## Testing Phase
+## Prerequisites
 
-**Start Date:** April 11, 2026
+- Python 3.11+
+- Google Chrome (latest)
+- ChromeDriver (matching Chrome version)
+- Both servers running (`npm run dev` or `START.bat`)
 
-### Planned Tests
-
-#### Backend Unit Tests
-- User model validation
-- Authentication controller
-- JWT token generation
-- Password hashing
-
-#### Frontend Unit Tests
-- Component rendering
-- Form validation
-- State management
-
-#### Integration Tests
-- User registration flow
-- Login/logout flow
-- Protected routes
-- API endpoints
+```bash
+pip install pytest selenium
+```
 
 ## Running Tests
 
 ```bash
-# All tests
-npm test
+# From tests/automation/
+pytest -v
 
-# Backend only
-npm run test:backend
+# Single file
+pytest test_login.py -v
 
-# Frontend only
-npm run test:frontend
+# By marker
+pytest -m login -v
+pytest -m error -v
 ```
 
----
+## Test Cases
 
-**Status:** Testing phase scheduled for April 11, 2026
+### `test_login.py`
+| # | Test | Marker |
+|---|------|--------|
+| 1 | Successful login → dashboard redirect | `login` |
+| 2 | Invalid email → error message | `login`, `error` |
+| 3 | Incorrect password → error message | `login`, `error` |
+| 4 | Empty fields → validation blocks submit | `login`, `error` |
+| 5 | Invalid email format → validation blocks submit | `login`, `error` |
+
+### `test_signup.py`
+Covers the 2-step signup flow including province/city selection.
+
+### `test_landing.py`
+Covers landing page rendering and navigation links.
+
+## CI Integration
+
+Automation tests run automatically in GitHub Actions after backend and frontend jobs pass.  
+See [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) for the pipeline configuration.

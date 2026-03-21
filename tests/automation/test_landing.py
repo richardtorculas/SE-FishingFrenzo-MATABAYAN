@@ -9,14 +9,6 @@ import time
 # FIXTURES
 # ============================================
 
-@pytest.fixture
-def browser():
-    """Setup and teardown browser for each test"""
-    driver = webdriver.Chrome()
-    driver.maximize_window()
-    yield driver
-    driver.quit()
-
 # ============================================
 # HELPER FUNCTIONS
 # ============================================
