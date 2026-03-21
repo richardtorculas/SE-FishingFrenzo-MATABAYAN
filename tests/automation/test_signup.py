@@ -11,14 +11,6 @@ import time
 # ============================================
 
 @pytest.fixture
-def browser():
-    """Setup and teardown browser for each test"""
-    driver = webdriver.Chrome()
-    driver.maximize_window()
-    yield driver
-    driver.quit()
-
-@pytest.fixture
 def unique_email():
     """Generate unique email for each test"""
     timestamp = int(time.time())
