@@ -73,14 +73,29 @@ jobs:
         run: npm run install:all
       - name: Install Python dependencies
         run: pip install pytest selenium webdriver-manager
+      - name: Build frontend
+        working-directory: src/frontend
+        run: npm run build
+        env:
+          CI: false
       - name: Start backend
         working-directory: src/backend
-        run: node server.js &
+        run: nohup node server.js > /tmp/backend.log 2>&1 &
       - name: Start frontend
-        working-directory: src/frontend
-        run: npx serve -s build -l 3000 &
+        run: nohup npx serve -s src/frontend/build -l 3000 > /tmp/frontend.log 2>&1 &
       - name: Wait for servers
-        run: npx wait-on http://localhost:3000 http://localhost:5000/health --timeout 60000
+        run: |
+          echo "Waiting for backend..."
+          npx wait-on http://localhost:5000/health --timeout 30000
+          echo "Waiting for frontend..."
+          npx wait-on http://localhost:3000 --timeout 30000
       - name: Run automation tests
         working-directory: tests/automation
         run: pytest -v
+      - name: Upload server logs on failure
+        if: failure()
+        run: |
+          echo "=== BACKEND LOG ==="
+          cat /tmp/backend.log || true
+          echo "=== FRONTEND LOG ==="
+          cat /tmp/frontend.log || true
