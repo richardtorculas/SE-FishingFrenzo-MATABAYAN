@@ -97,7 +97,6 @@ const parseBulletinText = (text, $, block) => {
   const affectedArea = areaMatch ? areaMatch[1].trim() : (lat && lon ? `${lat}°N ${lon}°E` : 'Philippine Area of Responsibility');
 
   return {
-    type: 'Typhoon',
     severity,
     location: affectedArea,
     province: 'Philippines',
@@ -159,7 +158,6 @@ const fetchFromJTWC = async () => {
         const { category, severity, signal, severity_num } = classifyCategory(windKph);
 
         cyclones.push({
-          type: 'Typhoon',
           severity,
           location: `${lat}°N ${lon}°E`,
           province: 'Philippines',

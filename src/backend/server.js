@@ -27,7 +27,6 @@ const connectDB = require('./src/config/database');
 
 // Route imports
 const authRoutes = require('./src/routes/authRoutes');
-const alertRoutes = require('./src/routes/alertRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const earthquakeRoutes = require('./src/routes/earthquakeRoutes');
 const typhoonRoutes = require('./src/routes/typhoonRoutes');
@@ -36,7 +35,8 @@ const typhoonRoutes = require('./src/routes/typhoonRoutes');
 const cron = require('node-cron');
 const { fetchEarthquakeData } = require('./src/services/phivolcsService');
 const { fetchTyphoonData } = require('./src/services/pagasaService');
-const Alert = require('./src/models/Alert');
+const Earthquake = require('./src/models/Earthquake');
+const Typhoon = require('./src/models/Typhoon');
 
 // ========== EXPRESS APP INITIALIZATION ==========
 const app = express();
@@ -76,13 +76,6 @@ connectDB();
 app.use('/api/auth', authRoutes);
 
 /**
- * Alert Routes
- * Base: /api/alerts
- * Endpoints: /, /location/:province
- */
-app.use('/api/alerts', alertRoutes);
-
-/**
  * User Routes
  * Base: /api/users
  * Endpoints: / (get all users)
@@ -97,12 +90,11 @@ cron.schedule('*/5 * * * *', async () => {
   try {
     const earthquakeData = await fetchEarthquakeData();
     for (const eq of earthquakeData) {
-      const existing = await Alert.findOne({
-        type: 'Earthquake',
+      const existing = await Earthquake.findOne({
         location: eq.location,
         timestamp: eq.timestamp
       });
-      if (!existing) await Alert.create(eq);
+      if (!existing) await Earthquake.create(eq);
     }
     console.log('🌍 PHIVOLCS earthquake data updated');
   } catch (err) {
@@ -115,8 +107,8 @@ cron.schedule('*/5 * * * *', async () => {
 cron.schedule('*/30 * * * *', async () => {
   try {
     const typhoonData = await fetchTyphoonData();
-    await Alert.deleteMany({ type: 'Typhoon' });
-    if (typhoonData.length > 0) await Alert.insertMany(typhoonData);
+    await Typhoon.deleteMany({});
+    if (typhoonData.length > 0) await Typhoon.insertMany(typhoonData);
     console.log(`🌀 PAGASA typhoon data updated — ${typhoonData.length} active cyclone(s)`);
   } catch (err) {
     console.error('❌ PAGASA cron error:', err.message);

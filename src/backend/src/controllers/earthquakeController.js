@@ -7,12 +7,12 @@
  * ============================================
  */
 
-const Alert = require('../models/Alert');
+const Earthquake = require('../models/Earthquake');
 const { fetchEarthquakeData } = require('../services/phivolcsService');
 
 const getEarthquakes = async (req, res) => {
   try {
-    const earthquakes = await Alert.find({ type: 'Earthquake' })
+    const earthquakes = await Earthquake.find()
       .sort({ timestamp: -1 })
       .limit(50);
 
@@ -27,8 +27,8 @@ const updateEarthquakeData = async (req, res) => {
     const earthquakeData = await fetchEarthquakeData(50);
 
     // Replace DB with latest 50 — clear old, insert fresh
-    await Alert.deleteMany({ type: 'Earthquake' });
-    await Alert.insertMany(earthquakeData);
+    await Earthquake.deleteMany({});
+    await Earthquake.insertMany(earthquakeData);
 
     res.json({
       status: 'success',
@@ -45,13 +45,12 @@ const getEarthquakeStats = async (req, res) => {
     const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     const [total, last24h, bySeverity, tsunamiCount] = await Promise.all([
-      Alert.countDocuments({ type: 'Earthquake' }),
-      Alert.countDocuments({ type: 'Earthquake', timestamp: { $gte: last24Hours } }),
-      Alert.aggregate([
-        { $match: { type: 'Earthquake' } },
+      Earthquake.countDocuments(),
+      Earthquake.countDocuments({ timestamp: { $gte: last24Hours } }),
+      Earthquake.aggregate([
         { $group: { _id: '$severity', count: { $sum: 1 } } }
       ]),
-      Alert.countDocuments({ type: 'Earthquake', 'metadata.tsunami': true })
+      Earthquake.countDocuments({ 'metadata.tsunami': true })
     ]);
 
     res.json({
@@ -65,7 +64,7 @@ const getEarthquakeStats = async (req, res) => {
 
 const clearEarthquakes = async (req, res) => {
   try {
-    await Alert.deleteMany({ type: 'Earthquake' });
+    await Earthquake.deleteMany({});
     res.json({ status: 'success', message: 'All earthquake records cleared' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
