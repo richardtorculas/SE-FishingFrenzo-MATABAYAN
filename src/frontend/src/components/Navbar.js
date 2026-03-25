@@ -27,6 +27,9 @@ const Navbar = () => {
             <Link to="/earthquakes" className="flex items-center gap-1 hover:text-blue-200 transition">
               🌍 Earthquakes
             </Link>
+            <Link to="/typhoons" className="flex items-center gap-1 hover:text-blue-200 transition">
+              🌀 Typhoons
+            </Link>
             
             {user ? (
               <>

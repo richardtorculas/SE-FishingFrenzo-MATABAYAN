@@ -30,10 +30,12 @@ const authRoutes = require('./src/routes/authRoutes');
 const alertRoutes = require('./src/routes/alertRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const earthquakeRoutes = require('./src/routes/earthquakeRoutes');
+const typhoonRoutes = require('./src/routes/typhoonRoutes');
 
 // Services
 const cron = require('node-cron');
 const { fetchEarthquakeData } = require('./src/services/phivolcsService');
+const { fetchTyphoonData } = require('./src/services/pagasaService');
 const Alert = require('./src/models/Alert');
 
 // ========== EXPRESS APP INITIALIZATION ==========
@@ -87,6 +89,7 @@ app.use('/api/alerts', alertRoutes);
  */
 app.use('/api/users', userRoutes);
 app.use('/api/earthquakes', earthquakeRoutes);
+app.use('/api/typhoons', typhoonRoutes);
 
 // ========== PHIVOLCS CRON JOB ==========
 // Fetch latest earthquake data every 5 minutes
@@ -104,6 +107,19 @@ cron.schedule('*/5 * * * *', async () => {
     console.log('🌍 PHIVOLCS earthquake data updated');
   } catch (err) {
     console.error('❌ PHIVOLCS cron error:', err.message);
+  }
+});
+
+// ========== PAGASA CRON JOB ==========
+// Fetch latest typhoon data every 30 minutes (bulletins update less frequently)
+cron.schedule('*/30 * * * *', async () => {
+  try {
+    const typhoonData = await fetchTyphoonData();
+    await Alert.deleteMany({ type: 'Typhoon' });
+    if (typhoonData.length > 0) await Alert.insertMany(typhoonData);
+    console.log(`🌀 PAGASA typhoon data updated — ${typhoonData.length} active cyclone(s)`);
+  } catch (err) {
+    console.error('❌ PAGASA cron error:', err.message);
   }
 });
 
