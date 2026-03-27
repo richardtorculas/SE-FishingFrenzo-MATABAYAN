@@ -107,9 +107,22 @@ cron.schedule('*/5 * * * *', async () => {
 cron.schedule('*/30 * * * *', async () => {
   try {
     const typhoonData = await fetchTyphoonData();
-    await Typhoon.deleteMany({});
-    if (typhoonData.length > 0) await Typhoon.insertMany(typhoonData);
-    console.log(`🌀 PAGASA typhoon data updated — ${typhoonData.length} active cyclone(s)`);
+    let saved = 0;
+    for (const cyclone of typhoonData) {
+      const existing = await Typhoon.findOne({ stormKey: cyclone.stormKey });
+      if (existing) continue;
+      const sameStorm = await Typhoon.findOne({ name: cyclone.name }).sort({ timestamp: -1 });
+      if (sameStorm) {
+        await Typhoon.findByIdAndUpdate(sameStorm._id, {
+          $push: { trajectory: { latitude: cyclone.latitude, longitude: cyclone.longitude, timestamp: cyclone.timestamp, windKph: cyclone.windKph } },
+          $set:  { latitude: cyclone.latitude, longitude: cyclone.longitude, windKph: cyclone.windKph, severity: cyclone.severity, category: cyclone.category, signal: cyclone.signal, location: cyclone.location, movementDirection: cyclone.movementDirection, movementSpeedKph: cyclone.movementSpeedKph, description: cyclone.description, timestamp: cyclone.timestamp, stormKey: cyclone.stormKey }
+        });
+      } else {
+        await Typhoon.create(cyclone);
+        saved++;
+      }
+    }
+    console.log(`🌀 PAGASA typhoon data updated — ${typhoonData.length} active cyclone(s), ${saved} new`);
   } catch (err) {
     console.error('❌ PAGASA cron error:', err.message);
   }
