@@ -121,15 +121,6 @@ MataBayan/
 - **Test Coverage** - Landing page, login, and signup flows
 - **Edge Cases** - Invalid credentials, empty fields, format validation
 
-## Removed Empty Folders
-
-✅ Previously deleted:
-- `backend/` (empty duplicate at root)
-- `frontend/` (empty duplicate at root)
-- `tests/unit/` (empty, planned for future)
-- `tests/integration/` (empty, planned for future)
-- `src/backend/src/services/` (unused - moved logic to controllers)
-
 ## One-Command Startup
 
 ```bash
