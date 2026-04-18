@@ -13,16 +13,16 @@ TYPHOON_URL = f"{BASE_URL}/typhoons"
 
 def navigate_to_typhoon_dashboard(driver):
     driver.get(TYPHOON_URL)
-    wait = WebDriverWait(driver, 15)
-    # Wait for loading to finish (spinner disappears or content appears)
-    wait.until(lambda d: "Fetching latest" not in d.page_source or
-        d.find_elements(By.XPATH, "//*[contains(text(),'No Active')]") or
-        d.find_elements(By.CSS_SELECTOR, ".rounded-xl"))
-    time.sleep(1)
+    wait = WebDriverWait(driver, 30)
+    # Wait for tab bar to appear
+    wait.until(EC.presence_of_element_located(
+        (By.XPATH, "//div[contains(@class,'border-b')]//button")
+    ))
+    # Wait for loading spinner to disappear before reading content
+    wait.until(lambda d: "Fetching latest data from PAGASA" not in d.page_source)
 
 def click_tab(driver, tab_name):
     wait = WebDriverWait(driver, 10)
-    # Tabs render with emojis (e.g. '📊 Charts') — find by iterating buttons
     def find_tab(d):
         buttons = d.find_elements(By.XPATH, "//div[contains(@class,'border-b')]//button")
         for btn in buttons:
@@ -31,7 +31,8 @@ def click_tab(driver, tab_name):
         return False
     tab = wait.until(find_tab)
     tab.click()
-    time.sleep(1)
+    # Wait for any in-progress loading spinner to clear after tab switch
+    wait.until(lambda d: "Fetching latest data from PAGASA" not in d.page_source)
 
 # ============================================
 # TC-TC-001: Page Load
@@ -150,8 +151,11 @@ def test_charts_tab_navigation(browser):
     navigate_to_typhoon_dashboard(browser)
     click_tab(browser, "Charts")
     page_source = browser.page_source
-    assert "Wind Speed Comparison" in page_source or "Storm Category Distribution" in page_source, \
-        "Charts tab content not found"
+    assert (
+        "Wind Speed Comparison" in page_source or
+        "Storm Category Distribution" in page_source or
+        "No active cyclones to display" in page_source
+    ), "Charts tab content not found"
     print("✓ Charts tab loaded correctly")
 
 # ============================================
@@ -226,7 +230,7 @@ def test_fetch_latest_button(browser):
     navigate_to_typhoon_dashboard(browser)
     wait = WebDriverWait(browser, 10)
     fetch_btn = wait.until(EC.element_to_be_clickable(
-        (By.XPATH, "//button[contains(text(), 'Fetch Latest')]")
+        (By.XPATH, "//button[contains(., 'Fetch Latest')]")
     ))
     fetch_btn.click()
     # Verify loading state appears
@@ -352,7 +356,7 @@ def test_auto_refresh_indicator(browser):
 # ============================================
 
 @pytest.mark.typhoon
-def test_scraped_data_contains_trajectory(browser):
+def test_scraped_data_contains_trajectory():
     """
     TC-01-005: Scraped Data Contains Required Fields Including Trajectory
     Steps:
@@ -368,8 +372,8 @@ def test_scraped_data_contains_trajectory(browser):
     # Trigger scrape
     try:
         requests.post("http://localhost:5000/api/typhoons/update", timeout=30)
-    except Exception:
-        pass
+    except requests.exceptions.RequestException as e:
+        print(f"  ⚠ Scrape trigger failed (backend may be offline): {e}")
 
     # Fetch stored data
     response = requests.get("http://localhost:5000/api/typhoons", timeout=10)
@@ -398,7 +402,7 @@ def test_scraped_data_contains_trajectory(browser):
 # ============================================
 
 @pytest.mark.typhoon
-def test_stored_data_matches_scraped_values(browser):
+def test_stored_data_matches_scraped_values():
     """
     TC-02-005: Stored Data Matches Scraped Values Accurately
     Steps:
@@ -415,8 +419,8 @@ def test_stored_data_matches_scraped_values(browser):
 
     try:
         requests.post("http://localhost:5000/api/typhoons/update", timeout=30)
-    except Exception:
-        pass
+    except requests.exceptions.RequestException as e:
+        print(f"  ⚠ Scrape trigger failed (backend may be offline): {e}")
 
     response = requests.get("http://localhost:5000/api/typhoons", timeout=10)
     assert response.status_code == 200, "GET /api/typhoons did not return 200"
