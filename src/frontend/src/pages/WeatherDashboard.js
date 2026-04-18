@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { Cloud, Droplets, Thermometer, RefreshCw, MapPin, Wind } from 'lucide-react';
 import { provinces } from '../utils/phLocations';
+import { useAuth } from '../context/AuthContext';
 
 const LOCATION_COORDS = {
   'Metro Manila':       { lat: 14.5995, lon: 120.9842 },
@@ -52,11 +53,20 @@ const StatCard = ({ label, value, icon, color }) => (
 );
 
 const WeatherDashboard = () => {
+  const { user } = useAuth();
+  const defaultLocation = user?.preferences?.province || 'Metro Manila';
+
   const [weather, setWeather]         = useState(null);
-  const [location, setLocation]       = useState('Metro Manila');
+  const [location, setLocation]       = useState(defaultLocation);
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+
+  // Auto-fetch on mount using user's saved province
+  useEffect(() => {
+    fetchWeather(defaultLocation);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchWeather = useCallback(async (loc = location) => {
     const coords = LOCATION_COORDS[loc];
@@ -101,7 +111,12 @@ const WeatherDashboard = () => {
                 <span className="ml-2 text-gray-400">· Updated {lastUpdated.toLocaleTimeString('en-PH')}</span>
               )}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">Powered by Open-Meteo · No API key required</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+            Powered by Open-Meteo · No API key required
+            {user?.preferences?.province && (
+              <span className="ml-2 text-sky-400">· 📍 Based on your profile ({user.preferences.province})</span>
+            )}
+          </p>
           </div>
           <button
             onClick={() => fetchWeather()}
