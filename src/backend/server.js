@@ -30,6 +30,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const earthquakeRoutes = require('./src/routes/earthquakeRoutes');
 const typhoonRoutes = require('./src/routes/typhoonRoutes');
+const weatherRoutes = require('./src/routes/weatherRoutes');
 
 // Services
 const cron = require('node-cron');
@@ -83,6 +84,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/earthquakes', earthquakeRoutes);
 app.use('/api/typhoons', typhoonRoutes);
+app.use('/api/weather', weatherRoutes);
 
 // ========== PHIVOLCS CRON JOB ==========
 // Fetch latest earthquake data every 5 minutes
