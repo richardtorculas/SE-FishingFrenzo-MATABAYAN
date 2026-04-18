@@ -8,6 +8,8 @@
  * ============================================
  */
 
+const axios = require('axios');
+
 const WMO_CODES = {
   0: 'Clear Sky', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
   45: 'Foggy', 48: 'Icy Fog',
@@ -26,11 +28,7 @@ const getWeather = async (req, res) => {
 
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation_probability,weather_code&timezone=Asia%2FManila`;
-    const response = await fetch(url);
-
-    if (!response.ok) throw new Error(`Open-Meteo error: ${response.status}`);
-
-    const data = await response.json();
+    const { data } = await axios.get(url);
     const current = data.current;
 
     res.json({
