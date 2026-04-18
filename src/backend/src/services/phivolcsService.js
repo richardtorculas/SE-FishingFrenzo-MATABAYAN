@@ -67,7 +67,6 @@ const scrapePhivolcs = async (limit = 50) => {
       const province = extractProvince(location);
 
       earthquakes.push({
-        type: 'Earthquake',
         severity: threat.level,
         location,
         province,
@@ -115,7 +114,6 @@ const fetchFromUSGS = async (limit = 50) => {
     const threat = calculateThreatLevel(magnitude, depth);
 
     return {
-      type: 'Earthquake',
       severity: threat.level,
       location: props.place || 'Philippines',
       province: 'Philippines',
