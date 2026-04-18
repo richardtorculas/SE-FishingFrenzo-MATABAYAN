@@ -8,7 +8,7 @@ const LOCATION_COORDS = {
   'Metro Manila':       { lat: 14.5995, lon: 120.9842 },
   'Cebu':               { lat: 10.3157, lon: 123.8854 },
   'Davao del Sur':      { lat: 7.0707,  lon: 125.4987 },
-  'Laguna':             { lat: 14.1407, lon: 121.4692 },
+  'Laguna':             { lat: 14.3292, lon: 121.0794 }, // Biñan, Laguna
   'Cavite':             { lat: 14.2456, lon: 120.8787 },
   'Bulacan':            { lat: 14.7942, lon: 120.8799 },
   'Pampanga':           { lat: 15.0794, lon: 120.6200 },
@@ -54,7 +54,7 @@ const StatCard = ({ label, value, icon, color }) => (
 
 const WeatherDashboard = () => {
   const { user } = useAuth();
-  const defaultLocation = user?.preferences?.province || 'Metro Manila';
+  const defaultLocation = user?.preferences?.province || 'Laguna';
 
   const [weather, setWeather]         = useState(null);
   const [location, setLocation]       = useState(defaultLocation);

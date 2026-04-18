@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Bell, MapPin, Globe } from 'lucide-react';
+import { Bell, MapPin, Globe, Cloud } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -43,6 +44,30 @@ const Dashboard = () => {
             <h2 className="text-xl font-semibold">Active Alerts</h2>
           </div>
           <p className="text-gray-600">No active alerts for your area at this time.</p>
+        </div>
+
+        <div className="mt-6 grid md:grid-cols-3 gap-4">
+          <Link to="/weather" className="bg-sky-500 hover:bg-sky-600 text-white p-5 rounded-lg shadow flex items-center gap-3 transition">
+            <Cloud size={28} />
+            <div>
+              <p className="font-bold">Daily Weather</p>
+              <p className="text-xs opacity-80">View weather for {user?.preferences?.province || 'your area'}</p>
+            </div>
+          </Link>
+          <Link to="/earthquakes" className="bg-red-600 hover:bg-red-700 text-white p-5 rounded-lg shadow flex items-center gap-3 transition">
+            <span className="text-2xl">🌍</span>
+            <div>
+              <p className="font-bold">Earthquake Monitor</p>
+              <p className="text-xs opacity-80">Latest PHIVOLCS data</p>
+            </div>
+          </Link>
+          <Link to="/typhoons" className="bg-blue-600 hover:bg-blue-700 text-white p-5 rounded-lg shadow flex items-center gap-3 transition">
+            <span className="text-2xl">🌀</span>
+            <div>
+              <p className="font-bold">Typhoon Monitor</p>
+              <p className="text-xs opacity-80">Active cyclones — PAR</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
