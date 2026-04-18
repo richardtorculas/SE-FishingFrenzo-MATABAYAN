@@ -16,8 +16,8 @@ def navigate_to_typhoon_dashboard(driver):
     wait = WebDriverWait(driver, 15)
     # Wait for loading to finish (spinner disappears or content appears)
     wait.until(lambda d: "Fetching latest" not in d.page_source or
-               d.find_elements(By.XPATH, "//*[contains(text(),'No Active')]") or
-               d.find_elements(By.CSS_SELECTOR, ".rounded-xl"))
+        d.find_elements(By.XPATH, "//*[contains(text(),'No Active')]") or
+        d.find_elements(By.CSS_SELECTOR, ".rounded-xl"))
     time.sleep(1)
 
 def click_tab(driver, tab_name):
