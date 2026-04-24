@@ -18,15 +18,15 @@ const getWeatherIcon = (code) => {
 const getRainColor = (pct) => {
   if (pct >= 70) return 'text-blue-700';
   if (pct >= 40) return 'text-blue-500';
-  return 'text-green-600';
+  return 'text-emerald-600';
 };
 
 const StatCard = ({ label, value, icon, color }) => (
-  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-    <div className={`p-3 rounded-lg ${color}`}>{icon}</div>
+  <div className="card flex items-center gap-4">
+    <div className={`p-3 rounded-xl ${color}`}>{icon}</div>
     <div>
-      <p className="text-2xl font-bold text-gray-800">{value}</p>
-      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-2xl font-bold text-ink">{value}</p>
+      <p className="text-xs text-subtle">{label}</p>
     </div>
   </div>
 );
@@ -51,7 +51,6 @@ const WeatherDashboard = () => {
       });
       const result = geoRes.data.results?.[0];
       if (!result) throw new Error(`Location "${loc}" not found.`);
-
       const weatherRes = await axios.get('http://localhost:5000/api/weather', {
         params: { latitude: result.latitude, longitude: result.longitude, location: loc }
       });
@@ -64,7 +63,6 @@ const WeatherDashboard = () => {
     }
   }, []);
 
-  // Once user loads from AuthContext, set their saved location and auto-fetch
   useEffect(() => {
     if (!user) return;
     const userProvince = user.preferences?.province || 'Laguna';
@@ -93,118 +91,100 @@ const WeatherDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-muted">
+      <div className="container mx-auto px-6 py-10 max-w-4xl">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Cloud className="text-sky-500" size={28} />
-              <h1 className="text-2xl font-bold text-gray-900">Daily Weather Report</h1>
+            <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">Open-Meteo</p>
+            <div className="flex items-center gap-2.5 mb-1">
+              <Cloud className="text-gray-700" size={24} />
+              <h1 className="text-2xl font-bold text-ink tracking-tight">Daily Weather Report</h1>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-subtle">
               Current weather conditions — Philippines
-              {lastUpdated && (
-                <span className="ml-2 text-gray-400">· Updated {lastUpdated.toLocaleTimeString('en-PH')}</span>
-              )}
+              {lastUpdated && <span className="ml-2">· Updated {lastUpdated.toLocaleTimeString('en-PH')}</span>}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Powered by Open-Meteo · No API key required
-              {user?.preferences?.province && (
-                <span className="ml-2 text-sky-400">· 📍 Based on your profile ({user.preferences.cityMunicipality}, {user.preferences.province})</span>
-              )}
-            </p>
+            {user?.preferences?.province && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                📍 Based on your profile ({user.preferences.cityMunicipality}, {user.preferences.province})
+              </p>
+            )}
           </div>
-          <button
-            onClick={() => fetchWeather(city)}
-            disabled={loading}
-            className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60"
-          >
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+          <button onClick={() => fetchWeather(city)} disabled={loading} className="btn-secondary flex items-center gap-2 self-start">
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
             {loading ? 'Fetching...' : 'Fetch Weather'}
           </button>
         </div>
 
         {/* Location Selector */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin size={15} className="text-sky-500" />
-            <p className="text-sm font-semibold text-gray-700">Select Location</p>
+        <div className="card mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin size={15} className="text-gray-500" />
+            <p className="text-sm font-semibold text-ink">Select Location</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Province</label>
-              <select
-                value={province}
-                onChange={handleProvinceChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-400"
-              >
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">Province</label>
+              <select value={province} onChange={handleProvinceChange} className="input-field">
                 {provinces.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">City / Municipality</label>
-              <select
-                value={city}
-                onChange={handleCityChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-400"
-              >
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block uppercase tracking-wide">City / Municipality</label>
+              <select value={city} onChange={handleCityChange} className="input-field">
                 {(citiesByProvince[province] || []).map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
         </div>
 
-        {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 mb-6 text-sm">
-            ⚠️ {error}
-          </div>
+          <div className="bg-red-50 border border-red-100 text-red-700 rounded-2xl p-4 mb-6 text-sm">⚠️ {error}</div>
         )}
 
-        {/* Loading */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex items-center justify-center py-24">
             <div className="text-center">
-              <Cloud size={40} className="text-sky-400 animate-pulse mx-auto mb-3" />
-              <p className="text-gray-500">Fetching weather for {city}...</p>
+              <Cloud size={36} className="text-gray-300 animate-pulse mx-auto mb-3" />
+              <p className="text-subtle text-sm">Fetching weather for {city}...</p>
             </div>
           </div>
         )}
 
-        {/* Weather Data */}
         {!loading && weather && (
           <>
-            <div className="bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl p-6 mb-6 shadow-md">
+            {/* Hero weather card */}
+            <div className="card mb-6 bg-ink text-white border-0">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <MapPin size={16} />
-                    <p className="text-sm font-medium opacity-90">{weather.location}</p>
+                    <MapPin size={14} className="opacity-60" />
+                    <p className="text-sm font-medium opacity-80">{weather.location}</p>
                   </div>
-                  <p className="text-6xl font-black">{weather.temperature}°C</p>
-                  <p className="text-lg font-medium opacity-90 mt-1">{weather.condition}</p>
+                  <p className="text-6xl font-black tracking-tight">{weather.temperature}°C</p>
+                  <p className="text-base font-medium opacity-75 mt-1">{weather.condition}</p>
                 </div>
-                <span className="text-8xl">{getWeatherIcon(weather.weatherCode)}</span>
+                <span className="text-7xl">{getWeatherIcon(weather.weatherCode)}</span>
               </div>
-              <p className="text-xs opacity-70">
+              <p className="text-xs opacity-50">
                 As of {new Date(weather.fetchedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-              <StatCard label="Temperature" value={`${weather.temperature}${weather.unit}`} icon={<Thermometer size={20} className="text-orange-500" />} color="bg-orange-50" />
-              <StatCard label="Humidity" value={`${weather.humidity}%`} icon={<Droplets size={20} className="text-blue-500" />} color="bg-blue-50" />
-              <StatCard label="Chance of Rain" value={<span className={getRainColor(weather.chanceOfRain)}>{weather.chanceOfRain}%</span>} icon={<Cloud size={20} className="text-sky-500" />} color="bg-sky-50" />
+              <StatCard label="Temperature"    value={`${weather.temperature}${weather.unit}`}                                                                icon={<Thermometer size={18} className="text-gray-500" />} color="bg-gray-50"   />
+              <StatCard label="Humidity"       value={`${weather.humidity}%`}                                                                                 icon={<Droplets size={18} className="text-gray-500" />}    color="bg-gray-50"   />
+              <StatCard label="Chance of Rain" value={<span className={getRainColor(weather.chanceOfRain)}>{weather.chanceOfRain}%</span>}                    icon={<Cloud size={18} className="text-gray-500" />}       color="bg-gray-50"   />
             </div>
 
             {weather.chanceOfRain >= 70 && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 rounded-xl p-4 mb-6 flex items-center gap-3 text-sm">
-                <Droplets size={18} />
+              <div className="bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl p-4 mb-6 flex items-center gap-3 text-sm">
+                <Droplets size={17} className="shrink-0" />
                 <div>
                   <p className="font-semibold">High chance of rain today ({weather.chanceOfRain}%)</p>
-                  <p className="text-xs opacity-80 mt-0.5">Bring an umbrella and avoid flood-prone areas.</p>
+                  <p className="text-xs opacity-75 mt-0.5">Bring an umbrella and avoid flood-prone areas.</p>
                 </div>
               </div>
             )}
@@ -212,14 +192,14 @@ const WeatherDashboard = () => {
         )}
 
         {!loading && !weather && !error && (
-          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
+          <div className="card p-16 text-center">
             <span className="text-5xl block mb-3">🌤️</span>
-            <p className="text-gray-700 font-semibold">No weather data yet</p>
-            <p className="text-gray-400 text-sm mt-1">Select a location and click "Fetch Weather" to get started.</p>
+            <p className="text-ink font-semibold">No weather data yet</p>
+            <p className="text-subtle text-sm mt-1">Select a location and click "Fetch Weather" to get started.</p>
           </div>
         )}
 
-        <p className="text-center text-xs text-gray-400 mt-8">
+        <p className="text-center text-xs text-gray-400 mt-10">
           Weather data: <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Open-Meteo</a>
           &nbsp;· Free & open-source weather API
         </p>

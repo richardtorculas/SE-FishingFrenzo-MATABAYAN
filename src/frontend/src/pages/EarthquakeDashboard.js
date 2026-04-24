@@ -1,22 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Activity, AlertTriangle, MapPin, Clock, Layers, RefreshCw, TrendingUp, ExternalLink, Waves } from 'lucide-react';
+import { Activity, AlertTriangle, MapPin, Clock, Layers, RefreshCw, ExternalLink, Waves } from 'lucide-react';
 
 const THREAT_CONFIG = {
-  Critical: { light: 'bg-red-50', border: 'border-red-500', text: 'text-red-700', badge: 'bg-red-600 text-white', icon: '🔴', pulse: true },
-  High:     { light: 'bg-orange-50', border: 'border-orange-400', text: 'text-orange-700', badge: 'bg-orange-500 text-white', icon: '🟠', pulse: true },
-  Moderate: { light: 'bg-yellow-50', border: 'border-yellow-400', text: 'text-yellow-700', badge: 'bg-yellow-400 text-gray-900', icon: '🟡', pulse: false },
-  Low:      { light: 'bg-blue-50', border: 'border-blue-400', text: 'text-blue-700', badge: 'bg-blue-500 text-white', icon: '🔵', pulse: false },
-  Minor:    { light: 'bg-green-50', border: 'border-green-400', text: 'text-green-700', badge: 'bg-green-500 text-white', icon: '🟢', pulse: false }
+  Critical: { bg: 'bg-red-50',    border: 'border-l-red-400',    text: 'text-red-700',    badge: 'bg-red-100 text-red-700',    icon: '🔴', pulse: true  },
+  High:     { bg: 'bg-orange-50', border: 'border-l-orange-400', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', icon: '🟠', pulse: true  },
+  Moderate: { bg: 'bg-amber-50',  border: 'border-l-amber-400',  text: 'text-amber-700',  badge: 'bg-amber-100 text-amber-700',  icon: '🟡', pulse: false },
+  Low:      { bg: 'bg-gray-50',   border: 'border-l-gray-400',   text: 'text-gray-600',   badge: 'bg-gray-100 text-gray-600',    icon: '🔵', pulse: false },
+  Minor:    { bg: 'bg-white',     border: 'border-l-gray-200',   text: 'text-gray-500',   badge: 'bg-gray-100 text-gray-500',    icon: '🟢', pulse: false }
 };
 
 const getMagnitudeBar = (magnitude) => {
   const pct = Math.min((magnitude / 9) * 100, 100);
-  let color = 'bg-green-400';
-  if (magnitude >= 7) color = 'bg-red-500';
-  else if (magnitude >= 6) color = 'bg-orange-500';
-  else if (magnitude >= 5) color = 'bg-yellow-400';
-  else if (magnitude >= 4) color = 'bg-blue-400';
+  let color = 'bg-gray-300';
+  if (magnitude >= 7) color = 'bg-red-400';
+  else if (magnitude >= 6) color = 'bg-orange-400';
+  else if (magnitude >= 5) color = 'bg-amber-400';
+  else if (magnitude >= 4) color = 'bg-gray-400';
   return { pct, color };
 };
 
@@ -26,78 +26,67 @@ const EarthquakeCard = ({ earthquake }) => {
   const { pct, color } = getMagnitudeBar(meta.magnitude || 0);
 
   return (
-    <div className={`rounded-xl border-l-4 ${threat.border} ${threat.light} p-5 shadow-sm hover:shadow-md transition-shadow`}>
-      {/* Tsunami warning banner */}
+    <div className={`rounded-2xl border-l-4 ${threat.border} ${threat.bg} border border-gray-100 p-5 shadow-card hover:shadow-card-hover transition-shadow duration-200`}>
       {meta.tsunami && (
-        <div className="flex items-center gap-2 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg mb-3">
-          <Waves size={14} />
-          TSUNAMI WARNING ISSUED
+        <div className="flex items-center gap-2 bg-gray-800 text-white text-xs font-semibold px-3 py-1.5 rounded-xl mb-3">
+          <Waves size={13} /> TSUNAMI WARNING ISSUED
         </div>
       )}
 
-      {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{threat.icon}</span>
+          <span className="text-lg">{threat.icon}</span>
           <div>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${threat.badge} ${threat.pulse ? 'animate-pulse' : ''}`}>
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${threat.badge} ${threat.pulse ? 'animate-pulse' : ''}`}>
               {earthquake.severity} THREAT
             </span>
             {meta.felt > 0 && (
-              <p className="text-xs text-gray-500 mt-0.5">👥 Felt by {meta.felt} {meta.felt === 1 ? 'person' : 'people'}</p>
+              <p className="text-xs text-subtle mt-0.5">👥 Felt by {meta.felt} {meta.felt === 1 ? 'person' : 'people'}</p>
             )}
           </div>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-black text-gray-800">M{meta.magnitude?.toFixed(1) ?? 'N/A'}</p>
-          <p className="text-xs text-gray-500">Magnitude</p>
+          <p className="text-3xl font-black text-ink">M{meta.magnitude?.toFixed(1) ?? 'N/A'}</p>
+          <p className="text-xs text-subtle">Magnitude</p>
         </div>
       </div>
 
-      {/* Magnitude bar */}
       <div className="mb-3">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
+        <div className="flex justify-between text-xs text-subtle mb-1">
           <span>Magnitude Scale</span>
           <span>{meta.magnitude?.toFixed(1)} / 9.0</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div className={`h-2 rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
+        <div className="w-full bg-gray-100 rounded-full h-1.5">
+          <div className={`h-1.5 rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
         </div>
       </div>
 
-      {/* Details */}
       <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-        <div className="flex items-start gap-1.5 text-gray-600 col-span-2">
-          <MapPin size={14} className="mt-0.5 shrink-0" />
+        <div className="flex items-start gap-1.5 text-subtle col-span-2">
+          <MapPin size={13} className="mt-0.5 shrink-0" />
           <span className="text-xs">{earthquake.location}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-gray-600">
-          <Layers size={14} />
+        <div className="flex items-center gap-1.5 text-subtle">
+          <Layers size={13} />
           <span className="text-xs">Depth: {meta.depth ?? 'N/A'} km {meta.depth < 70 ? '⚠️ Shallow' : ''}</span>
         </div>
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-subtle">
           📍 {meta.latitude?.toFixed(3)}°N, {meta.longitude?.toFixed(3)}°E
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
-            📡 PHIVOLCS
-          </span>
+          <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-gray-100 text-gray-600">📡 PHIVOLCS</span>
           {meta.usgsUrl && (
-            <a href={meta.usgsUrl} target="_blank" rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-0.5">
+            <a href={meta.usgsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-subtle hover:text-ink flex items-center gap-0.5 transition-colors">
               <ExternalLink size={11} /> Details
             </a>
           )}
         </div>
-        <div className="flex items-center gap-1 text-xs text-gray-500">
-          <Clock size={12} />
-          {new Date(earthquake.timestamp).toLocaleString('en-PH', {
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-          })}
+        <div className="flex items-center gap-1 text-xs text-subtle">
+          <Clock size={11} />
+          {new Date(earthquake.timestamp).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
     </div>
@@ -105,11 +94,11 @@ const EarthquakeCard = ({ earthquake }) => {
 };
 
 const StatCard = ({ label, value, icon, color }) => (
-  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-    <div className={`p-3 rounded-lg ${color}`}>{icon}</div>
+  <div className="card flex items-center gap-4">
+    <div className={`p-3 rounded-xl ${color}`}>{icon}</div>
     <div>
-      <p className="text-2xl font-bold text-gray-800">{value}</p>
-      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-2xl font-bold text-ink">{value}</p>
+      <p className="text-xs text-subtle">{label}</p>
     </div>
   </div>
 );
@@ -157,13 +146,9 @@ const EarthquakeDashboard = () => {
   };
 
   useEffect(() => {
-    // Auto-fetch on first load
     const init = async () => {
       setLoading(true);
-      try {
-        // Try fetching fresh data first
-        await axios.post('http://localhost:5000/api/earthquakes/update');
-      } catch (_) {}
+      try { await axios.post('http://localhost:5000/api/earthquakes/update'); } catch (_) {}
       await loadData();
     };
     init();
@@ -180,77 +165,69 @@ const EarthquakeDashboard = () => {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen bg-muted">
+      <div className="container mx-auto px-6 py-10 max-w-6xl">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Activity className="text-red-600" size={28} />
-              <h1 className="text-2xl font-bold text-gray-900">PHIVOLCS Earthquake Monitor</h1>
+            <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">PHIVOLCS</p>
+            <div className="flex items-center gap-2.5 mb-1">
+              <Activity className="text-gray-700" size={24} />
+              <h1 className="text-2xl font-bold text-ink tracking-tight">Earthquake Monitor</h1>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-subtle">
               Latest Earthquake Information — Philippines
-              {lastUpdated && (
-                <span className="ml-2 text-gray-400">· Updated {lastUpdated.toLocaleTimeString('en-PH')}</span>
-              )}
+              {lastUpdated && <span className="ml-2">· Updated {lastUpdated.toLocaleTimeString('en-PH')}</span>}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Real-time data from PHIVOLCS (Philippine Institute of Volcanology and Seismology) · Auto-refreshes every 5 minutes
-            </p>
+            <p className="text-xs text-gray-400 mt-0.5">Auto-refreshes every 5 minutes</p>
           </div>
           <button
             onClick={triggerUpdate}
             disabled={refreshing}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60"
+            className="btn-secondary flex items-center gap-2 self-start"
           >
-            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-            {refreshing ? 'Fetching from PHIVOLCS...' : 'Fetch Latest'}
+            <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Fetching...' : 'Fetch Latest'}
           </button>
         </div>
 
-        {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 mb-6 text-sm">
-            ⚠️ {error}
-          </div>
+          <div className="bg-red-50 border border-red-100 text-red-700 rounded-2xl p-4 mb-6 text-sm">⚠️ {error}</div>
         )}
 
-        {/* Tsunami warning */}
         {tsunamiActive && (
-          <div className="bg-blue-600 text-white rounded-xl p-4 mb-4 flex items-center gap-3">
-            <Waves size={22} />
+          <div className="bg-gray-900 text-white rounded-2xl p-4 mb-4 flex items-center gap-3">
+            <Waves size={20} />
             <div>
-              <p className="font-bold">🌊 TSUNAMI WARNING ACTIVE</p>
-              <p className="text-xs opacity-90">A tsunami warning has been issued for one or more recent earthquakes.</p>
+              <p className="font-bold text-sm">🌊 TSUNAMI WARNING ACTIVE</p>
+              <p className="text-xs opacity-75">A tsunami warning has been issued for one or more recent earthquakes.</p>
             </div>
           </div>
         )}
 
-        {/* Critical alert banner */}
         {highestThreat && (
-          <div className="bg-red-600 text-white rounded-xl p-4 mb-6 flex items-center gap-3">
-            <AlertTriangle size={20} />
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4 mb-6 flex items-center gap-3">
+            <AlertTriangle size={18} className="shrink-0" />
             <div>
-              <p className="font-bold text-sm">⚠️ ACTIVE HIGH-THREAT EARTHQUAKE</p>
-              <p className="text-xs opacity-90">M{highestThreat.metadata?.magnitude?.toFixed(1)} — {highestThreat.location}</p>
+              <p className="font-semibold text-sm">Active High-Threat Earthquake</p>
+              <p className="text-xs opacity-80 mt-0.5">M{highestThreat.metadata?.magnitude?.toFixed(1)} — {highestThreat.location}</p>
             </div>
           </div>
         )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <StatCard label="Total Recorded" value={stats?.total ?? earthquakes.length} icon={<Activity size={20} className="text-gray-600" />} color="bg-gray-100" />
-          <StatCard label="Last 24 Hours" value={stats?.last24Hours ?? 0} icon={<Clock size={20} className="text-blue-600" />} color="bg-blue-50" />
-          <StatCard label="High / Critical" value={(severityCounts.Critical || 0) + (severityCounts.High || 0)} icon={<AlertTriangle size={20} className="text-red-600" />} color="bg-red-50" />
-          <StatCard label="Tsunami Alerts" value={stats?.tsunamiCount ?? 0} icon={<Waves size={20} className="text-blue-600" />} color="bg-blue-50" />
+          <StatCard label="Total Recorded"  value={stats?.total ?? earthquakes.length}                                          icon={<Activity size={18} className="text-gray-500" />}     color="bg-gray-50"  />
+          <StatCard label="Last 24 Hours"   value={stats?.last24Hours ?? 0}                                                     icon={<Clock size={18} className="text-gray-500" />}        color="bg-gray-50"  />
+          <StatCard label="High / Critical" value={(severityCounts.Critical || 0) + (severityCounts.High || 0)}                 icon={<AlertTriangle size={18} className="text-red-400" />} color="bg-red-50"   />
+          <StatCard label="Tsunami Alerts"  value={stats?.tsunamiCount ?? 0}                                                    icon={<Waves size={18} className="text-gray-500" />}        color="bg-gray-50"  />
         </div>
 
         {/* Threat legend */}
-        <div className="bg-white rounded-xl p-4 mb-6 shadow-sm border border-gray-100">
-          <p className="text-xs font-semibold text-gray-500 uppercase mb-3">Threat Level Guide</p>
-          <div className="flex flex-wrap gap-4">
+        <div className="card mb-6">
+          <p className="text-xs font-semibold text-subtle uppercase tracking-wide mb-3">Threat Level Guide</p>
+          <div className="flex flex-wrap gap-5">
             {Object.entries(THREAT_CONFIG).map(([level, cfg]) => (
               <div key={level} className="flex items-center gap-1.5 text-xs">
                 <span>{cfg.icon}</span>
@@ -270,19 +247,18 @@ const EarthquakeDashboard = () => {
         {/* Filter tabs */}
         <div className="flex gap-2 flex-wrap mb-6">
           {SEVERITY_FILTERS.map(s => {
-            const cfg = THREAT_CONFIG[s];
             const count = s === 'All' ? earthquakes.length : severityCounts[s] || 0;
             return (
               <button
                 key={s}
                 onClick={() => setFilter(s)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border ${
                   filter === s
-                    ? cfg ? `${cfg.badge} border-transparent` : 'bg-gray-800 text-white border-transparent'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                    ? 'bg-ink text-white border-ink'
+                    : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700'
                 }`}
               >
-                {s} {count > 0 && <span className="ml-1 opacity-75">({count})</span>}
+                {s} {count > 0 && <span className="ml-1 opacity-60">({count})</span>}
               </button>
             );
           })}
@@ -290,15 +266,15 @@ const EarthquakeDashboard = () => {
 
         {/* List */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex items-center justify-center py-24">
             <div className="text-center">
-              <Activity size={40} className="text-red-400 animate-pulse mx-auto mb-3" />
-              <p className="text-gray-500">Fetching latest data from PHIVOLCS...</p>
+              <Activity size={36} className="text-gray-300 animate-pulse mx-auto mb-3" />
+              <p className="text-subtle text-sm">Fetching latest data from PHIVOLCS...</p>
             </div>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
-            <p className="text-gray-400 text-lg">No earthquakes found</p>
+          <div className="card p-16 text-center">
+            <p className="text-subtle text-base">No earthquakes found</p>
             <p className="text-gray-400 text-sm mt-1">
               {filter !== 'All' ? `No ${filter} threat earthquakes recorded` : 'Click "Fetch Latest" to load data'}
             </p>
@@ -309,7 +285,7 @@ const EarthquakeDashboard = () => {
           </div>
         )}
 
-        <p className="text-center text-xs text-gray-400 mt-8">
+        <p className="text-center text-xs text-gray-400 mt-10">
           Primary data: <a href="https://earthquake.phivolcs.dost.gov.ph" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">PHIVOLCS — DOST</a>
           &nbsp;· Fallback: USGS Earthquake Hazards Program
         </p>

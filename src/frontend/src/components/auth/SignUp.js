@@ -44,9 +44,7 @@ const SignUp = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (validateStep1()) setStep(2);
-  };
+  const handleNext = () => { if (validateStep1()) setStep(2); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,95 +72,111 @@ const SignUp = () => {
   };
 
   const getStrengthColor = () => {
-    if (passwordStrength.score < 2) return 'bg-red-500';
-    if (passwordStrength.score < 4) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (passwordStrength.score < 2) return 'bg-red-400';
+    if (passwordStrength.score < 4) return 'bg-amber-400';
+    return 'bg-emerald-400';
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="bg-blue-600 text-white p-6">
-          <h1 className="text-2xl font-bold">MataBayan</h1>
-          <p className="text-blue-100 text-sm">Disaster Alert System</p>
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white rounded-3xl shadow-card w-full max-w-md overflow-hidden border border-gray-100"
+      >
+        <div className="px-8 pt-8 pb-6 border-b border-gray-100">
+          <div className="flex items-center gap-2 mb-1">
+            <img src="/logo.png" alt="MataBayan" className="h-8 w-auto" />
+            <span className="text-lg font-bold text-ink tracking-tight">MataBayan</span>
+          </div>
+          <p className="text-sm text-subtle mt-0.5">Create your account</p>
         </div>
 
-        <div className="p-8">
-          <div className="flex justify-between mb-8">
-            <div className={`flex items-center ${step >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>1</div>
-              <span className="ml-2 text-sm font-medium">Account</span>
-            </div>
-            <div className={`flex items-center ${step >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>2</div>
-              <span className="ml-2 text-sm font-medium">Location</span>
-            </div>
+        <div className="px-8 py-8">
+          {/* Step indicator */}
+          <div className="flex items-center gap-3 mb-8">
+            {[1, 2].map((s) => (
+              <React.Fragment key={s}>
+                <div className="flex items-center gap-2">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    step >= s ? 'bg-ink text-white' : 'bg-gray-100 text-gray-400'
+                  }`}>{s}</div>
+                  <span className={`text-sm font-medium transition-all ${step >= s ? 'text-ink' : 'text-gray-400'}`}>
+                    {s === 1 ? 'Account' : 'Location'}
+                  </span>
+                </div>
+                {s < 2 && <div className={`flex-1 h-px transition-all ${step >= 2 ? 'bg-ink' : 'bg-gray-200'}`} />}
+              </React.Fragment>
+            ))}
           </div>
 
           <AnimatePresence mode="wait">
             {step === 1 && (
-              <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <motion.div key="step1" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Full Name</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 text-gray-400" size={20} />
-                      <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none" placeholder="Juan Dela Cruz" />
+                      <User className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
+                      <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="input-field pl-10" placeholder="Juan Dela Cruz" />
                     </div>
                     {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                      <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none" placeholder="juan@example.com" />
-                      {formData.email && validateEmail(formData.email) && <CheckCircle2 className="absolute right-3 top-3 text-green-500" size={20} />}
+                      <Mail className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
+                      <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="input-field pl-10" placeholder="juan@example.com" />
+                      {formData.email && validateEmail(formData.email) && <CheckCircle2 className="absolute right-3.5 top-3.5 text-emerald-400" size={16} />}
                     </div>
                     {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                      <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none" placeholder="••••••••" />
+                      <Lock className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
+                      <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="input-field pl-10" placeholder="••••••••" />
                     </div>
                     {formData.password && (
                       <div className="mt-2">
                         <div className="flex gap-1 mb-1">
-                          {[...Array(5)].map((_, i) => <div key={i} className={`h-1 flex-1 rounded ${i < passwordStrength.score ? getStrengthColor() : 'bg-gray-200'}`} />)}
+                          {[...Array(5)].map((_, i) => (
+                            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < passwordStrength.score ? getStrengthColor() : 'bg-gray-100'}`} />
+                          ))}
                         </div>
-                        {passwordStrength.feedback.length > 0 && <p className="text-xs text-gray-600">Need: {passwordStrength.feedback.join(', ')}</p>}
+                        {passwordStrength.feedback.length > 0 && <p className="text-xs text-subtle">Need: {passwordStrength.feedback.join(', ')}</p>}
                       </div>
                     )}
                     {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Confirm Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                      <input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none" placeholder="••••••••" />
+                      <Lock className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
+                      <input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className="input-field pl-10" placeholder="••••••••" />
                     </div>
                     {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
                   </div>
 
-                  <button onClick={handleNext} className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                    Continue <ChevronRight size={20} />
+                  <button onClick={handleNext} className="btn-primary w-full flex items-center justify-center gap-2 mt-2">
+                    Continue <ChevronRight size={16} />
                   </button>
                 </div>
               </motion.div>
             )}
 
             {step === 2 && (
-              <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <motion.div key="step2" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Province</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Province</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
-                      <select value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value, cityMunicipality: '' })} className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none">
+                      <MapPin className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
+                      <select value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value, cityMunicipality: '' })} className="input-field pl-10 appearance-none">
                         <option value="">Select Province</option>
                         {provinces.map(p => <option key={p} value={p}>{p}</option>)}
                       </select>
@@ -171,10 +185,10 @@ const SignUp = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">City/Municipality</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">City / Municipality</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
-                      <select value={formData.cityMunicipality} onChange={(e) => setFormData({ ...formData, cityMunicipality: e.target.value })} className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none" disabled={!formData.province}>
+                      <MapPin className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
+                      <select value={formData.cityMunicipality} onChange={(e) => setFormData({ ...formData, cityMunicipality: e.target.value })} className="input-field pl-10 appearance-none" disabled={!formData.province}>
                         <option value="">Select City</option>
                         {formData.province && citiesByProvince[formData.province]?.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
@@ -183,32 +197,30 @@ const SignUp = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Language</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Language</label>
                     <div className="flex gap-4">
-                      <label className="flex items-center gap-2">
-                        <input type="radio" value="en" checked={formData.language === 'en'} onChange={(e) => setFormData({ ...formData, language: e.target.value })} className="w-4 h-4" />
-                        <span className="text-sm">English</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="radio" value="fil" checked={formData.language === 'fil'} onChange={(e) => setFormData({ ...formData, language: e.target.value })} className="w-4 h-4" />
-                        <span className="text-sm">Filipino</span>
-                      </label>
+                      {[{ val: 'en', label: 'English' }, { val: 'fil', label: 'Filipino' }].map(({ val, label }) => (
+                        <label key={val} className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" value={val} checked={formData.language === val} onChange={(e) => setFormData({ ...formData, language: e.target.value })} className="w-4 h-4 accent-gray-900" />
+                          <span className="text-sm text-gray-700">{label}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
 
                   {errors.submit && (
-                    <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded">
-                      <AlertCircle size={20} />
-                      <span className="text-sm">{errors.submit}</span>
+                    <div className="flex items-center gap-2 text-red-700 bg-red-50 border border-red-100 p-3 rounded-xl text-sm">
+                      <AlertCircle size={16} className="shrink-0" />
+                      <span>{errors.submit}</span>
                     </div>
                   )}
 
-                  <div className="flex gap-3">
-                    <button type="button" onClick={() => setStep(1)} className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
-                      <ChevronLeft size={20} /> Back
+                  <div className="flex gap-3 mt-2">
+                    <button type="button" onClick={() => setStep(1)} className="btn-secondary flex-1 flex items-center justify-center gap-2">
+                      <ChevronLeft size={16} /> Back
                     </button>
-                    <button type="submit" disabled={loading} className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50">
-                      {loading ? 'Creating...' : 'Sign Up'}
+                    <button type="submit" disabled={loading} className="btn-primary flex-1">
+                      {loading ? 'Creating...' : 'Create Account'}
                     </button>
                   </div>
                 </form>
@@ -216,8 +228,9 @@ const SignUp = () => {
             )}
           </AnimatePresence>
 
-          <p className="text-center text-sm text-gray-600 mt-6">
-            Already have an account? <Link to="/login" className="text-blue-600 font-semibold hover:underline">Log In</Link>
+          <p className="text-center text-sm text-subtle mt-6">
+            Already have an account?{' '}
+            <Link to="/login" className="text-ink font-semibold hover:underline">Sign In</Link>
           </p>
         </div>
       </motion.div>

@@ -6,9 +6,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  useEffect(() => { fetchUsers(); }, []);
 
   const fetchUsers = async () => {
     try {
@@ -21,49 +19,59 @@ const AdminUsers = () => {
     }
   };
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-muted flex items-center justify-center">
+      <p className="text-subtle text-sm">Loading users...</p>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Users className="text-blue-600" size={32} />
-          <h1 className="text-3xl font-bold text-gray-800">Registered Users</h1>
+    <div className="min-h-screen bg-muted">
+      <div className="container mx-auto px-6 py-10">
+        <div className="mb-8">
+          <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">Admin</p>
+          <div className="flex items-center gap-3">
+            <Users className="text-gray-700" size={24} />
+            <h1 className="text-2xl font-bold text-ink tracking-tight">Registered Users</h1>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4 mb-4">
-          <p className="text-gray-600">Total Users: <strong>{users.length}</strong></p>
+        <div className="card mb-5 flex items-center justify-between">
+          <p className="text-sm text-subtle">Total registered users</p>
+          <p className="text-2xl font-bold text-ink">{users.length}</p>
         </div>
 
-        <div className="grid gap-4">
+        <div className="space-y-3">
           {users.map(user => (
-            <div key={user._id} className="bg-white p-6 rounded-lg shadow">
-              <div className="flex items-start justify-between">
+            <div key={user._id} className="card hover:shadow-card-hover transition-shadow duration-200">
+              <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-800">{user.name}</h3>
-                  <p className="text-gray-600">{user.email}</p>
+                  <h3 className="text-base font-semibold text-ink">{user.name}</h3>
+                  <p className="text-sm text-subtle">{user.email}</p>
                 </div>
-                <span className="text-xs text-gray-500">
-                  {new Date(user.createdAt).toLocaleDateString()}
+                <span className="text-xs text-gray-400 bg-gray-50 px-2.5 py-1 rounded-lg">
+                  {new Date(user.createdAt).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </span>
               </div>
 
-              <div className="mt-4 grid md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-2 text-gray-700">
-                  <MapPin size={18} className="text-blue-600" />
+              <div className="grid md:grid-cols-2 gap-3 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <MapPin size={15} className="text-gray-400 shrink-0" />
                   <span>{user.preferences?.cityMunicipality}, {user.preferences?.province}</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-700">
-                  <Globe size={18} className="text-green-600" />
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <Globe size={15} className="text-gray-400 shrink-0" />
                   <span>{user.preferences?.language === 'en' ? 'English' : 'Filipino'}</span>
                 </div>
               </div>
 
-              <div className="mt-3 text-sm text-gray-600">
-                <strong>Alert Types:</strong> {Object.entries(user.preferences?.alertTypes || {})
+              <div className="mt-3 text-xs text-subtle">
+                <span className="font-semibold text-gray-600">Alert Types: </span>
+                {Object.entries(user.preferences?.alertTypes || {})
                   .filter(([_, enabled]) => enabled)
-                  .map(([type]) => type)
-                  .join(', ')}
+                  .map(([type]) => (
+                    <span key={type} className="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg mr-1.5 capitalize">{type}</span>
+                  ))}
               </div>
             </div>
           ))}
