@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import AdminUsers from './pages/AdminUsers';
 import EarthquakeDashboard from './pages/EarthquakeDashboard';
 import TyphoonDashboard from './pages/TyphoonDashboard';
+import WeatherDashboard from './pages/WeatherDashboard';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/earthquakes" element={<EarthquakeDashboard />} />
             <Route path="/typhoons" element={<TyphoonDashboard />} />
+            <Route path="/weather" element={<ProtectedRoute><WeatherDashboard /></ProtectedRoute>} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route
               path="/dashboard"
