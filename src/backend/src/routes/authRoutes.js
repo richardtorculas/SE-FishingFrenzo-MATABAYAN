@@ -44,4 +44,12 @@ router.post('/logout', authController.logout);
  */
 router.get('/me', protect, authController.getMe);
 
+/**
+ * PATCH /api/auth/location
+ * Update current user's location preferences
+ * Requires: Valid JWT token
+ * Body: { province, cityMunicipality }
+ */
+router.patch('/location', protect, authController.updateLocation);
+
 module.exports = router;

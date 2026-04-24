@@ -191,3 +191,33 @@ exports.getMe = async (req, res) => {
     });
   }
 };
+
+/**
+ * ========================================
+ * UPDATE LOCATION - Update user location preferences
+ * ========================================
+ * PATCH /api/auth/location
+ * Body: { province, cityMunicipality }
+ */
+exports.updateLocation = async (req, res) => {
+  try {
+    const { province, cityMunicipality } = req.body;
+
+    if (!province || !cityMunicipality) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Province and city/municipality are required'
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { 'preferences.province': province, 'preferences.cityMunicipality': cityMunicipality },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({ status: 'success', user });
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message });
+  }
+};
