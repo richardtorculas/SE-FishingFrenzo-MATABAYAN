@@ -48,8 +48,19 @@ const app = express();
  * CORS - Enable cross-origin requests from frontend
  * Allows frontend (localhost:3000) to communicate with backend (localhost:5000)
  */
-app.use(cors({ 
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+const allowedOrigins = [
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.some(o => origin.startsWith(o))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
