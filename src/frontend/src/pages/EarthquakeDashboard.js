@@ -1,16 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Activity, AlertTriangle, MapPin, Clock, Layers, RefreshCw, ExternalLink, Waves, Loader } from 'lucide-react';
+import { Activity, AlertTriangle, MapPin, Clock, Layers, RefreshCw, ExternalLink, Waves, Loader, X } from 'lucide-react';
 
 const THREAT_CONFIG = {
-  Critical: { bg: 'bg-red-50',   border: 'border-l-red-400',    text: 'text-red-700',    badge: 'bg-red-100 text-red-700',     pulse: true  },
-  High:     { bg: 'bg-orange-50',border: 'border-l-orange-400', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700',pulse: true  },
-  Moderate: { bg: 'bg-amber-50', border: 'border-l-amber-400',  text: 'text-amber-700',  badge: 'bg-amber-100 text-amber-700', pulse: false },
-  Low:      { bg: 'bg-gray-50',  border: 'border-l-gray-300',   text: 'text-gray-600',   badge: 'bg-gray-100 text-gray-600',   pulse: false },
-  Minor:    { bg: 'bg-white',    border: 'border-l-gray-200',   text: 'text-gray-500',   badge: 'bg-gray-100 text-gray-500',   pulse: false },
+  Critical: { bg: 'bg-red-50',      border: 'border-l-red-400',    text: 'text-red-700',    badge: 'bg-red-100 text-red-700',        pulse: true  },
+  High:     { bg: 'bg-orange-50',   border: 'border-l-orange-400', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', pulse: true  },
+  Moderate: { bg: 'bg-amber-50',    border: 'border-l-amber-400',  text: 'text-amber-700',  badge: 'bg-amber-100 text-amber-700',   pulse: false },
+  Low:      { bg: 'bg-gray-50',     border: 'border-l-gray-300',   text: 'text-gray-600',   badge: 'bg-gray-100 text-gray-600',     pulse: false },
+  Minor:    { bg: 'bg-white',       border: 'border-l-gray-200',   text: 'text-gray-500',   badge: 'bg-gray-100 text-gray-500',     pulse: false },
 };
 
 const THREAT_RANGES = { Critical: '≥ M7.0', High: 'M6.0–6.9', Moderate: 'M5.0–5.9', Low: 'M4.0–4.9', Minor: '< M4.0' };
+
+const THREAT_GUIDE = [
+  { label: 'Critical',  range: '≥ M7.0',   color: 'text-red-700',    inner: 'bg-red-300',    outer: 'bg-red-200'    },
+  { label: 'High',      range: 'M6.0–6.9', color: 'text-orange-700', inner: 'bg-orange-300', outer: 'bg-orange-200' },
+  { label: 'Moderate',  range: 'M5.0–5.9', color: 'text-amber-700',  inner: 'bg-amber-300',  outer: 'bg-amber-200'  },
+  { label: 'Low',       range: 'M4.0–4.9', color: 'text-gray-600',   inner: 'bg-gray-300',   outer: 'bg-gray-200'   },
+  { label: 'Minor',     range: '< M4.0',   color: 'text-gray-500',   inner: 'bg-gray-200',   outer: 'bg-gray-100'   },
+];
 
 const getMagnitudeBar = (magnitude) => {
   const pct = Math.min((magnitude / 9) * 100, 100);
@@ -56,72 +64,126 @@ const EmptyState = ({ message, sub }) => (
   </div>
 );
 
-/* ── Earthquake Card ───────────────────────────────────────────────────────── */
-const EarthquakeCard = ({ earthquake }) => {
+/* ── Epicenter Indicator ───────────────────────────────────────────────────────── */
+const EpicenterIndicator = ({ inner, outer }) => (
+  <div className="relative w-3.5 h-3.5 flex items-center justify-center">
+    <div className={`absolute w-3.5 h-3.5 rounded-full ${outer} opacity-40`} />
+    <div className={`relative w-1.5 h-1.5 rounded-full ${inner}`} />
+  </div>
+);
+
+/* ── Earthquake Detail Modal ───────────────────────────────────────────────────────── */
+const EarthquakeModal = ({ earthquake, onClose }) => {
+  if (!earthquake) return null;
+
   const threat = THREAT_CONFIG[earthquake.severity] || THREAT_CONFIG.Minor;
   const meta = earthquake.metadata || {};
   const { pct, color } = getMagnitudeBar(meta.magnitude || 0);
 
   return (
-    <div className={`rounded-2xl border-l-4 ${threat.border} ${threat.bg} border border-gray-200 p-5 shadow-card hover:shadow-card-hover transition-shadow duration-200`}>
-      {meta.tsunami && (
-        <div className="flex items-center gap-2 bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl mb-3">
-          <Waves size={13} /> TSUNAMI WARNING ISSUED
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-ink">Earthquake Details</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+            <X size={20} className="text-gray-500" />
+          </button>
         </div>
-      )}
 
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${threat.badge} ${threat.pulse ? 'animate-pulse' : ''}`}>
-            {earthquake.severity} THREAT
-          </span>
-          {meta.felt > 0 && (
-            <p className="text-xs text-subtle mt-1">Felt by {meta.felt} {meta.felt === 1 ? 'person' : 'people'}</p>
-          )}
-        </div>
-        <div className="text-right">
-          <p className="text-3xl font-black text-ink">M{meta.magnitude?.toFixed(1) ?? 'N/A'}</p>
-          <p className="text-xs text-subtle">Magnitude</p>
-        </div>
-      </div>
+        <div className="p-6">
+          <div className={`rounded-2xl border-l-4 ${threat.border} ${threat.bg} border border-gray-200 p-5`}>
+            {meta.tsunami && (
+              <div className="flex items-center gap-2 bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl mb-3">
+                <Waves size={13} /> TSUNAMI WARNING ISSUED
+              </div>
+            )}
 
-      <div className="mb-3">
-        <div className="flex justify-between text-xs text-subtle mb-1">
-          <span>Magnitude Scale</span>
-          <span>{meta.magnitude?.toFixed(1)} / 9.0</span>
-        </div>
-        <div className="w-full bg-gray-100 rounded-full h-1.5">
-          <div className={`h-1.5 rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
-        </div>
-      </div>
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${threat.badge} ${threat.pulse ? 'animate-pulse' : ''}`}>
+                  {earthquake.severity} THREAT
+                </span>
+                {meta.felt > 0 && (
+                  <p className="text-xs text-subtle mt-1">Felt by {meta.felt} {meta.felt === 1 ? 'person' : 'people'}</p>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-black text-ink">M{meta.magnitude?.toFixed(1) ?? 'N/A'}</p>
+                <p className="text-xs text-subtle">Magnitude</p>
+              </div>
+            </div>
 
-      <div className="space-y-1 mb-3">
-        <div className="flex items-start gap-1.5 text-subtle">
-          <MapPin size={13} className="mt-0.5 shrink-0" />
-          <span className="text-xs">{earthquake.location}</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-subtle">
-          <Layers size={13} />
-          <span className="text-xs">Depth: {meta.depth ?? 'N/A'} km{meta.depth < 70 ? ' — Shallow' : ''}</span>
-        </div>
-        <p className="text-xs text-subtle pl-0.5">{meta.latitude?.toFixed(3)}°N, {meta.longitude?.toFixed(3)}°E</p>
-      </div>
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-subtle mb-1">
+                <span>Magnitude Scale</span>
+                <span>{meta.magnitude?.toFixed(1)} / 9.0</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className={`h-1.5 rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
+              </div>
+            </div>
 
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-600">PHIVOLCS</span>
-          {meta.usgsUrl && (
-            <a href={meta.usgsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-subtle hover:text-ink flex items-center gap-0.5 transition-colors">
-              <ExternalLink size={11} /> Details
-            </a>
-          )}
-        </div>
-        <div className="flex items-center gap-1 text-xs text-subtle">
-          <Clock size={11} />
-          {new Date(earthquake.timestamp).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            <div className="space-y-1 mb-3">
+              <div className="flex items-start gap-1.5 text-subtle">
+                <MapPin size={13} className="mt-0.5 shrink-0" />
+                <span className="text-xs">{earthquake.location}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-subtle">
+                <Layers size={13} />
+                <span className="text-xs">Depth: {meta.depth ?? 'N/A'} km{meta.depth < 70 ? ' — Shallow' : ''}</span>
+              </div>
+              <p className="text-xs text-subtle pl-0.5">{meta.latitude?.toFixed(3)}°N, {meta.longitude?.toFixed(3)}°E</p>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-600">PHIVOLCS</span>
+                {meta.usgsUrl && (
+                  <a href={meta.usgsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-subtle hover:text-ink flex items-center gap-0.5 transition-colors">
+                    <ExternalLink size={11} /> Details
+                  </a>
+                )}
+              </div>
+              <div className="flex items-center gap-1 text-xs text-subtle">
+                <Clock size={11} />
+                {new Date(earthquake.timestamp).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  );
+};
+
+/* ── Earthquake Table Row ───────────────────────────────────────────────────────── */
+const EarthquakeTableRow = ({ earthquake, onRowClick, isEven }) => {
+  const meta = earthquake.metadata || {};
+
+  return (
+    <tr 
+      onClick={onRowClick}
+      className={`border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors ${isEven ? 'bg-gray-50' : 'bg-white'}`}
+    >
+      <td className="px-4 py-3 text-center whitespace-nowrap">
+        <p className="text-xs text-subtle">{new Date(earthquake.timestamp).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
+      </td>
+      <td className="px-4 py-3 text-center whitespace-nowrap">
+        <p className="text-sm text-ink">{meta.latitude?.toFixed(3) ?? 'N/A'}°</p>
+      </td>
+      <td className="px-4 py-3 text-center whitespace-nowrap">
+        <p className="text-sm text-ink">{meta.longitude?.toFixed(3) ?? 'N/A'}°</p>
+      </td>
+      <td className="px-4 py-3 text-center whitespace-nowrap">
+        <p className="text-sm text-ink">{meta.depth ?? 'N/A'}</p>
+      </td>
+      <td className="px-4 py-3 text-center whitespace-nowrap">
+        <p className="text-sm text-ink">{meta.magnitude?.toFixed(1) ?? 'N/A'}</p>
+      </td>
+      <td className="px-4 py-3 text-left whitespace-nowrap">
+        <p className="text-sm text-ink">{earthquake.location}</p>
+      </td>
+    </tr>
   );
 };
 
@@ -134,6 +196,7 @@ const EarthquakeDashboard = () => {
   const [filter, setFilter]           = useState('All');
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError]             = useState(null);
+  const [selectedEarthquake, setSelectedEarthquake] = useState(null);
 
   const SEVERITY_FILTERS = ['All', 'Critical', 'High', 'Moderate', 'Low', 'Minor'];
 
@@ -237,15 +300,15 @@ const EarthquakeDashboard = () => {
           <StatCard label="Tsunami Alerts"  value={stats?.tsunamiCount ?? 0}                                                  icon={<Waves size={18} className="text-gray-500" />}        color="bg-gray-50" />
         </div>
 
-        {/* Threat legend */}
+        {/* Threat Level Guide */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-5 mb-6">
-          <p className="text-xs font-semibold text-subtle uppercase tracking-wide mb-3">Threat Level Guide</p>
-          <div className="flex flex-wrap gap-5">
-            {Object.entries(THREAT_CONFIG).map(([level, cfg]) => (
-              <div key={level} className="flex items-center gap-1.5 text-xs">
-                <span className={`w-2 h-2 rounded-full ${cfg.badge.split(' ')[0]}`} />
-                <span className={`font-semibold ${cfg.text}`}>{level}</span>
-                <span className="text-gray-400">{THREAT_RANGES[level]}</span>
+          <p className="text-xs font-semibold text-subtle uppercase tracking-wide mb-3">Threat Level Guide (Magnitude Scale)</p>
+          <div className="flex flex-wrap gap-5 text-xs">
+            {THREAT_GUIDE.map(t => (
+              <div key={t.label} className="flex items-center gap-2">
+                <EpicenterIndicator inner={t.inner} outer={t.outer} />
+                <span className={`font-semibold ${t.color}`}>{t.label}</span>
+                <span className="text-gray-400">{t.range}</span>
               </div>
             ))}
           </div>
@@ -271,7 +334,7 @@ const EarthquakeDashboard = () => {
           })}
         </div>
 
-        {/* List */}
+        {/* Table */}
         {loading ? (
           <LoadingState label="Fetching latest data from PHIVOLCS..." />
         ) : filtered.length === 0 ? (
@@ -280,8 +343,31 @@ const EarthquakeDashboard = () => {
             sub={filter !== 'All' ? `No ${filter} threat earthquakes recorded` : 'Click "Fetch Latest" to load data'}
           />
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
-            {filtered.map(eq => <EarthquakeCard key={eq._id} earthquake={eq} />)}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-max">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-subtle uppercase tracking-wide">Date - Time<br/>(Philippine Time)</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-subtle uppercase tracking-wide">Latitude<br/>(ºN)</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-subtle uppercase tracking-wide">Longitude<br/>(ºE)</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-subtle uppercase tracking-wide">Depth<br/>(km)</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-subtle uppercase tracking-wide">Mag</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-subtle uppercase tracking-wide">Location</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((eq, index) => (
+                    <EarthquakeTableRow
+                      key={eq._id}
+                      earthquake={eq}
+                      onRowClick={() => setSelectedEarthquake(eq)}
+                      isEven={index % 2 === 0}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -290,6 +376,14 @@ const EarthquakeDashboard = () => {
           &nbsp;· Fallback: USGS Earthquake Hazards Program
         </p>
       </div>
+
+      {/* Modal */}
+      {selectedEarthquake && (
+        <EarthquakeModal 
+          earthquake={selectedEarthquake} 
+          onClose={() => setSelectedEarthquake(null)}
+        />
+      )}
     </div>
   );
 };
