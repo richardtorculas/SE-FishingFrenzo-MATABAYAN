@@ -5,6 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { Bell, MapPin, Globe, Cloud, Pencil, Check, X, Activity, Wind } from 'lucide-react';
 import { provinces, citiesByProvince } from '../utils/phLocations';
 
+const CardHeader = ({ icon: Icon, title }) => (
+  <div className="flex items-center gap-3 mb-5">
+    <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100">
+      <Icon className="text-gray-600" size={17} />
+    </div>
+    <h2 className="text-sm font-semibold text-ink">{title}</h2>
+  </div>
+);
+
 const Dashboard = () => {
   const { user, updateUser } = useAuth();
 
@@ -30,7 +39,7 @@ const Dashboard = () => {
     setError(null);
     try {
       const res = await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/auth/location`,
+        'http://localhost:5000/api/auth/location',
         { province, cityMunicipality: city },
         { withCredentials: true }
       );
@@ -54,24 +63,22 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      <div className="container mx-auto px-6 py-10">
+      <div className="container mx-auto px-6 py-10 max-w-5xl">
+
+        {/* Page header */}
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">Dashboard</p>
-          <h1 className="text-3xl font-bold text-ink tracking-tight">Welcome, {user?.name}</h1>
+          <h1 className="text-2xl font-bold text-ink tracking-tight">Welcome, {user?.name}</h1>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5 mb-5">
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
+
           {/* Location Card */}
-          <div className="card">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6">
             <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center">
-                  <MapPin className="text-gray-600" size={18} />
-                </div>
-                <h2 className="text-base font-semibold text-ink">Your Location</h2>
-              </div>
+              <CardHeader icon={MapPin} title="Your Location" />
               {!editing && (
-                <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-xs text-subtle hover:text-ink transition-colors">
+                <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-xs text-subtle hover:text-ink transition-colors -mt-5">
                   <Pencil size={13} /> Edit
                 </button>
               )}
@@ -79,9 +86,19 @@ const Dashboard = () => {
 
             {!editing ? (
               <div className="space-y-2">
-                <p className="text-sm text-gray-700"><span className="text-subtle">Province:</span> <span className="font-medium">{user?.preferences?.province || '—'}</span></p>
-                <p className="text-sm text-gray-700"><span className="text-subtle">City/Municipality:</span> <span className="font-medium">{user?.preferences?.cityMunicipality || '—'}</span></p>
-                {success && <p className="text-emerald-600 text-xs mt-2 font-medium">Location updated successfully.</p>}
+                <div className="flex justify-between text-sm">
+                  <span className="text-subtle">Province</span>
+                  <span className="font-medium text-ink">{user?.preferences?.province || '—'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-subtle">City / Municipality</span>
+                  <span className="font-medium text-ink">{user?.preferences?.cityMunicipality || '—'}</span>
+                </div>
+                {success && (
+                  <p className="text-emerald-600 text-xs mt-2 font-medium pt-2 border-t border-gray-100">
+                    Location updated successfully.
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -113,28 +130,20 @@ const Dashboard = () => {
           </div>
 
           {/* Preferences Card */}
-          <div className="card">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center">
-                <Globe className="text-gray-600" size={18} />
-              </div>
-              <h2 className="text-base font-semibold text-ink">Preferences</h2>
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6">
+            <CardHeader icon={Globe} title="Preferences" />
+            <div className="flex justify-between text-sm">
+              <span className="text-subtle">Language</span>
+              <span className="font-medium text-ink">
+                {user?.preferences?.language === 'en' ? 'English' : 'Filipino'}
+              </span>
             </div>
-            <p className="text-sm text-gray-700">
-              <span className="text-subtle">Language:</span>{' '}
-              <span className="font-medium">{user?.preferences?.language === 'en' ? 'English' : 'Filipino'}</span>
-            </p>
           </div>
         </div>
 
         {/* Active Alerts */}
-        <div className="card mb-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center">
-              <Bell className="text-gray-600" size={18} />
-            </div>
-            <h2 className="text-base font-semibold text-ink">Active Alerts</h2>
-          </div>
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6 mb-4">
+          <CardHeader icon={Bell} title="Active Alerts" />
           <p className="text-sm text-subtle">
             {user?.preferences?.province
               ? `No active alerts for ${user.preferences.province} at this time.`
@@ -144,34 +153,27 @@ const Dashboard = () => {
 
         {/* Quick Links */}
         <div className="grid md:grid-cols-3 gap-4">
-          <Link to="/weather" className="card hover:shadow-card-hover transition-all duration-200 flex items-center gap-4 group">
-            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-gray-100 transition-colors">
-              <Cloud size={20} className="text-gray-600" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-ink">Daily Weather</p>
-              <p className="text-xs text-subtle">{user?.preferences?.province || 'Your area'}</p>
-            </div>
-          </Link>
-          <Link to="/earthquakes" className="card hover:shadow-card-hover transition-all duration-200 flex items-center gap-4 group">
-            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-gray-100 transition-colors">
-              <Activity size={20} className="text-gray-600" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-ink">Earthquake Monitor</p>
-              <p className="text-xs text-subtle">Latest PHIVOLCS data</p>
-            </div>
-          </Link>
-          <Link to="/typhoons" className="card hover:shadow-card-hover transition-all duration-200 flex items-center gap-4 group">
-            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-gray-100 transition-colors">
-              <Wind size={20} className="text-gray-600" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-ink">Typhoon Monitor</p>
-              <p className="text-xs text-subtle">Active cyclones — PAR</p>
-            </div>
-          </Link>
+          {[
+            { to: '/weather',     icon: Cloud,    label: 'Daily Weather',     sub: user?.preferences?.province || 'Your area' },
+            { to: '/earthquakes', icon: Activity, label: 'Earthquake Monitor', sub: 'Latest PHIVOLCS data' },
+            { to: '/typhoons',    icon: Wind,     label: 'Typhoon Monitor',    sub: 'Active cyclones — PAR' },
+          ].map(({ to, icon: Icon, label, sub }) => (
+            <Link
+              key={to}
+              to={to}
+              className="bg-white border border-gray-200 rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200 flex items-center gap-4 p-5 group"
+            >
+              <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-gray-100 transition-colors shrink-0">
+                <Icon size={18} className="text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-ink">{label}</p>
+                <p className="text-xs text-subtle">{sub}</p>
+              </div>
+            </Link>
+          ))}
         </div>
+
       </div>
     </div>
   );
