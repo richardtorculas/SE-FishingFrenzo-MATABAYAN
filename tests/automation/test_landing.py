@@ -34,7 +34,7 @@ def verify_landing_page_loaded(driver):
     time.sleep(0.5)
     
     # Check subtitle
-    subtitle = driver.find_element(By.XPATH, "//*[contains(text(), 'Real-Time Disaster Alert')]")
+    subtitle = driver.find_element(By.XPATH, "//*[contains(text(), 'Real-Time Disaster Preparedness')]")
     assert subtitle.is_displayed(), "Subtitle not visible"
     print("    ✓ Subtitle found")
     time.sleep(0.5)
