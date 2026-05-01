@@ -286,8 +286,8 @@ const TyphoonDashboard = () => {
   const loadData = useCallback(async () => {
     try {
       const [tRes, sRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/typhoons'),
-        axios.get('http://localhost:5000/api/typhoons/stats'),
+        axios.get(`${process.env.REACT_APP_API_URL}/api/typhoons`),
+        axios.get(`${process.env.REACT_APP_API_URL}/api/typhoons/stats`),
       ]);
       setTyphoons(tRes.data.data || []);
       setStats(sRes.data.data || null);
@@ -305,7 +305,7 @@ const TyphoonDashboard = () => {
     setRefreshing(true);
     setError(null);
     try {
-      await axios.post('http://localhost:5000/api/typhoons/update');
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/typhoons/update`);
       await loadData();
     } catch {
       setError('Failed to fetch from PAGASA. Check your internet connection.');
@@ -316,7 +316,7 @@ const TyphoonDashboard = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      try { await axios.post('http://localhost:5000/api/typhoons/update'); } catch (_) {}
+      try { await axios.post(`${process.env.REACT_APP_API_URL}/api/typhoons/update`); } catch (_) {}
       await loadData();
     };
     init();
