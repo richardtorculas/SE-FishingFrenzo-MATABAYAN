@@ -30,7 +30,7 @@ const Dashboard = () => {
     setError(null);
     try {
       const res = await axios.patch(
-        'http://localhost:5000/api/auth/location',
+        `${process.env.REACT_APP_API_URL}/api/auth/location`,
         { province, cityMunicipality: city },
         { withCredentials: true }
       );

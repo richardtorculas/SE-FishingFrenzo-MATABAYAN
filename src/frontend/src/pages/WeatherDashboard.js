@@ -51,7 +51,7 @@ const WeatherDashboard = () => {
       });
       const result = geoRes.data.results?.[0];
       if (!result) throw new Error(`Location "${loc}" not found.`);
-      const weatherRes = await axios.get('http://localhost:5000/api/weather', {
+      const weatherRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/weather`, {
         params: { latitude: result.latitude, longitude: result.longitude, location: loc }
       });
       setWeather(weatherRes.data.data);

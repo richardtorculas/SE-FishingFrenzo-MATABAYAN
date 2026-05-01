@@ -117,8 +117,8 @@ const EarthquakeDashboard = () => {
   const loadData = useCallback(async () => {
     try {
       const [eqRes, statsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/earthquakes'),
-        axios.get('http://localhost:5000/api/earthquakes/stats')
+        axios.get(`${process.env.REACT_APP_API_URL}/api/earthquakes`),
+        axios.get(`${process.env.REACT_APP_API_URL}/api/earthquakes/stats`)
       ]);
       setEarthquakes(eqRes.data.data || []);
       setStats(statsRes.data.data || null);
@@ -136,7 +136,7 @@ const EarthquakeDashboard = () => {
     setRefreshing(true);
     setError(null);
     try {
-      const res = await axios.post('http://localhost:5000/api/earthquakes/update');
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/earthquakes/update`);
       await loadData();
       return res.data;
     } catch (err) {
@@ -148,7 +148,7 @@ const EarthquakeDashboard = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      try { await axios.post('http://localhost:5000/api/earthquakes/update'); } catch (_) {}
+      try { await axios.post(`${process.env.REACT_APP_API_URL}/api/earthquakes/update`); } catch (_) {}
       await loadData();
     };
     init();
