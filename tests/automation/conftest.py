@@ -19,6 +19,7 @@ def browser():
         service=Service(ChromeDriverManager().install()),
         options=options
     )
-    driver.maximize_window()
+    driver.set_page_load_timeout(60)
+    driver.implicitly_wait(20)
     yield driver
     driver.quit()

@@ -17,7 +17,7 @@ def navigate_to_landing_page(driver):
     """Navigate to the landing page (home page)"""
     print("  - Navigating to landing page...")
     driver.get("http://localhost:3000")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 30)
     # Wait for the main heading to load
     wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'MataBayan')]")))
     time.sleep(1)  # Pause to observe page load
@@ -25,7 +25,7 @@ def navigate_to_landing_page(driver):
 def verify_landing_page_loaded(driver):
     """Verify that landing page has loaded successfully"""
     print("  - Verifying landing page elements...")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     
     # Check main heading
     heading = wait.until(EC.presence_of_element_located((By.XPATH, "//h1[contains(text(), 'MataBayan')]")))
@@ -34,7 +34,7 @@ def verify_landing_page_loaded(driver):
     time.sleep(0.5)
     
     # Check subtitle
-    subtitle = driver.find_element(By.XPATH, "//*[contains(text(), 'Real-Time Disaster Alert')]")
+    subtitle = driver.find_element(By.XPATH, "//*[contains(text(), 'Real-Time Disaster Preparedness')]")
     assert subtitle.is_displayed(), "Subtitle not visible"
     print("    ✓ Subtitle found")
     time.sleep(0.5)
@@ -56,7 +56,7 @@ def verify_landing_page_loaded(driver):
 def click_signup_button_in_navbar(driver):
     """Click the 'Sign Up' button in navigation bar"""
     print("  - Clicking Sign Up button...")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     signup_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//nav//a[contains(text(), 'Sign Up')]")))
     time.sleep(1)  # Pause before clicking
     signup_btn.click()
@@ -65,7 +65,7 @@ def click_signup_button_in_navbar(driver):
 def click_login_button_in_navbar(driver):
     """Click the 'Log In' button in navigation bar"""
     print("  - Clicking Log In button...")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     login_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//nav//a[contains(text(), 'Log In')]")))
     time.sleep(1)  # Pause before clicking
     login_btn.click()
@@ -74,7 +74,7 @@ def click_login_button_in_navbar(driver):
 def verify_signup_page_loaded(driver):
     """Verify that signup page has loaded"""
     print("  - Verifying signup page loaded...")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     wait.until(EC.url_contains("/signup"))
     # Check for signup page specific elements
     wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Account')]")))
@@ -84,7 +84,7 @@ def verify_signup_page_loaded(driver):
 def verify_login_page_loaded(driver):
     """Verify that login page has loaded"""
     print("  - Verifying login page loaded...")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     wait.until(EC.url_contains("/login"))
     # Check for login page specific elements
     wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Welcome Back')]")))

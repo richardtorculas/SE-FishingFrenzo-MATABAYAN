@@ -76,6 +76,8 @@ jobs:
           python-version: '3.11'
       - name: Install Node dependencies
         run: npm run install:all
+        env:
+          NODE_ENV: development
       - name: Install Python dependencies
         run: pip install pytest selenium webdriver-manager
       - name: Build frontend
@@ -100,7 +102,7 @@ jobs:
           cat /tmp/backend.log
           exit 1
       - name: Start frontend
-        run: node_modules/.bin/serve -s src/frontend/build -l 3000 > /tmp/frontend.log 2>&1 &
+        run: npx serve -s src/frontend/build -l 3000 > /tmp/frontend.log 2>&1 &
       - name: Verify frontend started
         run: |
           for i in {1..15}; do
