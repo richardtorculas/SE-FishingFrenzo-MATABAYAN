@@ -1,13 +1,20 @@
-export const provinces = [
-  'Metro Manila', 'Cebu', 'Davao del Sur', 'Laguna', 'Cavite', 'Bulacan',
-  'Pampanga', 'Batangas', 'Rizal', 'Pangasinan', 'Iloilo', 'Negros Occidental',
-  'Albay', 'Leyte', 'Cagayan', 'Isabela', 'Nueva Ecija', 'Zambales'
-];
+import provinces_data from 'philippines/provinces';
+import cities_data from 'philippines/cities';
 
-export const citiesByProvince = {
-  'Metro Manila': ['Manila', 'Quezon City', 'Makati', 'Pasig', 'Taguig', 'Mandaluyong'],
-  'Cebu': ['Cebu City', 'Mandaue', 'Lapu-Lapu', 'Talisay', 'Toledo'],
-  'Davao del Sur': ['Davao City', 'Digos', 'Bansalan', 'Hagonoy'],
-  'Laguna': ['Calamba', 'Santa Rosa', 'Biñan', 'San Pedro', 'Cabuyao'],
-  'Cavite': ['Bacoor', 'Dasmariñas', 'Imus', 'Tagaytay', 'Trece Martires']
-};
+export const provinces = [
+  ...provinces_data.map(p => p.name).sort(),
+  'Metro Manila'
+].sort();
+
+// Cities grouped by province name
+const cityMap = {};
+cities_data.forEach(city => {
+  const province = city.province
+    ? provinces_data.find(p => p.key === city.province)?.name
+    : 'Metro Manila';
+  if (!province) return;
+  if (!cityMap[province]) cityMap[province] = [];
+  cityMap[province].push(city.name);
+});
+
+export const citiesByProvince = cityMap;

@@ -38,6 +38,31 @@ MataBayan/
 ```
 
 ## 🛠️ Tech Stack
+* **Frontend:** HTML5, CSS3, JavaScript / React / Tailwind
+* **Backend:** Node.js / Express.js
+* **Database:** MongoDB
+* **Integrations:** Government Weather/Disaster APIs & RSS Feeds
+
+## 👥 The Team
+| Name | Role | Responsibility |
+| :--- | :--- | :--- |
+| **Adrian Paolo Follante** | Project Manager + Software Developer | Project oversight, leadership, and requirements monitoring. |
+| **Ram Andrei Manalo** | Requirements Analyst | Documentation of functional/non-functional requirements and SRS maintenance. |
+| **Renzo Emmanuel Ramos** | Software Developer + Quality Assurance | Full-stack development, API integration, and system testing. |
+| **France Raphael Rivera** | Quality Assurance + Software Developer | Test planning, defect reporting, and performance verification. |
+| **Richard Torculas** | Software Designer + DevOps | System architecture, UI/UX design, and deployment/CI processes. |
+
+## 📅 Roadmap & Milestones
+- [ ] **Project Start:** February 1, 2026
+- [ ] **Requirements Finalized:** February 14, 2026
+- [ ] **Design Completed:** February 21, 2026
+- [ ] **Testing Phase:** April 11, 2026
+- [ ] **Project Completion:** May 2, 2026
+
+## ⚠️ Risks & Assumptions
+* **Data Reliability:** Dependent on the uptime of external government APIs.
+* **Connectivity:** System requires internet access (Offline functionality is currently out of scope).
+* **Scalability:** Designed to handle spikes of at least 100+ simultaneous users during active disaster events.
 
 - **Frontend:** React 18, Tailwind CSS, Framer Motion
 - **Backend:** Node.js, Express.js, MongoDB
@@ -82,3 +107,4 @@ MIT License - See [LICENSE](LICENSE) for details
 ---
 
 *Developed to improve disaster preparedness in the Philippines* 🇵🇭
+

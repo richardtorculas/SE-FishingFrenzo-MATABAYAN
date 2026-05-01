@@ -36,10 +36,10 @@ const createSendToken = (user, statusCode, res) => {
   
   // Cookie configuration
   const cookieOptions = {
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    httpOnly: true,                          // Prevent XSS attacks
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-    sameSite: 'strict'                       // CSRF protection
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
   };
 
   // Send token as HTTP-only cookie
@@ -189,5 +189,35 @@ exports.getMe = async (req, res) => {
       status: 'fail',
       message: 'Not authenticated'
     });
+  }
+};
+
+/**
+ * ========================================
+ * UPDATE LOCATION - Update user location preferences
+ * ========================================
+ * PATCH /api/auth/location
+ * Body: { province, cityMunicipality }
+ */
+exports.updateLocation = async (req, res) => {
+  try {
+    const { province, cityMunicipality } = req.body;
+
+    if (!province || !cityMunicipality) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Province and city/municipality are required'
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { 'preferences.province': province, 'preferences.cityMunicipality': cityMunicipality },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({ status: 'success', user });
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message });
   }
 };
