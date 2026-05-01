@@ -51,7 +51,7 @@ const SignUp = () => {
     if (!validateStep2()) return;
     setLoading(true);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/signup`, {
+      const response = await axios.post('http://localhost:5000/api/auth/signup', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -65,7 +65,7 @@ const SignUp = () => {
       login(response.data.data.user);
       navigate('/dashboard');
     } catch (error) {
-      setErrors({ submit: error.response?.data?.message || 'Registration failed' });
+      setErrors({ submit: error.response?.data?.message || 'Registration failed. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -77,25 +77,34 @@ const SignUp = () => {
     return 'bg-emerald-400';
   };
 
+  const FieldError = ({ msg }) => msg
+    ? <p className="text-red-500 text-xs mt-1">{msg}</p>
+    : null;
+
   return (
     <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="bg-white rounded-3xl shadow-card w-full max-w-md overflow-hidden border border-gray-100"
+        className="bg-white rounded-3xl shadow-card w-full max-w-md overflow-hidden border border-gray-200"
       >
-        <div className="px-8 pt-8 pb-6 border-b border-gray-100">
-          <div className="flex items-center gap-2 mb-1">
+        {/* Card header */}
+        <div className="px-8 pt-8 pb-5 border-b border-gray-100">
+          <div className="flex items-center gap-2.5 mb-1">
             <img src="/logo.png" alt="MataBayan" className="h-8 w-auto" />
             <span className="text-lg font-bold text-ink tracking-tight">MataBayan</span>
           </div>
-          <p className="text-sm text-subtle mt-0.5">Create your account</p>
+          <p className="text-sm text-subtle">Create your account</p>
         </div>
 
+        {/* Card body */}
         <div className="px-8 py-8">
+          <h2 className="text-xl font-bold text-ink mb-1">Get started</h2>
+          <p className="text-sm text-subtle mb-6">Fill in your details to create an account</p>
+
           {/* Step indicator */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-7">
             {[1, 2].map((s) => (
               <React.Fragment key={s}>
                 <div className="flex items-center gap-2">
@@ -116,26 +125,26 @@ const SignUp = () => {
               <motion.div key="step1" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Full Name</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Full Name</label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
                       <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="input-field pl-10" placeholder="Juan Dela Cruz" />
                     </div>
-                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                    <FieldError msg={errors.name} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Email</label>
                     <div className="relative">
                       <Mail className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
                       <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="input-field pl-10" placeholder="juan@example.com" />
                       {formData.email && validateEmail(formData.email) && <CheckCircle2 className="absolute right-3.5 top-3.5 text-emerald-400" size={16} />}
                     </div>
-                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                    <FieldError msg={errors.email} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Password</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Password</label>
                     <div className="relative">
                       <Lock className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
                       <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="input-field pl-10" placeholder="••••••••" />
@@ -150,19 +159,19 @@ const SignUp = () => {
                         {passwordStrength.feedback.length > 0 && <p className="text-xs text-subtle">Need: {passwordStrength.feedback.join(', ')}</p>}
                       </div>
                     )}
-                    {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+                    <FieldError msg={errors.password} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Confirm Password</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Confirm Password</label>
                     <div className="relative">
                       <Lock className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
                       <input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className="input-field pl-10" placeholder="••••••••" />
                     </div>
-                    {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+                    <FieldError msg={errors.confirmPassword} />
                   </div>
 
-                  <button onClick={handleNext} className="btn-primary w-full flex items-center justify-center gap-2 mt-2">
+                  <button onClick={handleNext} className="btn-primary w-full flex items-center justify-center gap-2 mt-1">
                     Continue <ChevronRight size={16} />
                   </button>
                 </div>
@@ -173,7 +182,7 @@ const SignUp = () => {
               <motion.div key="step2" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Province</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Province</label>
                     <div className="relative">
                       <MapPin className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
                       <select value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value, cityMunicipality: '' })} className="input-field pl-10 appearance-none">
@@ -181,11 +190,11 @@ const SignUp = () => {
                         {provinces.map(p => <option key={p} value={p}>{p}</option>)}
                       </select>
                     </div>
-                    {errors.province && <p className="text-red-500 text-xs mt-1">{errors.province}</p>}
+                    <FieldError msg={errors.province} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">City / Municipality</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">City / Municipality</label>
                     <div className="relative">
                       <MapPin className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
                       <select value={formData.cityMunicipality} onChange={(e) => setFormData({ ...formData, cityMunicipality: e.target.value })} className="input-field pl-10 appearance-none" disabled={!formData.province}>
@@ -193,11 +202,11 @@ const SignUp = () => {
                         {formData.province && citiesByProvince[formData.province]?.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
-                    {errors.cityMunicipality && <p className="text-red-500 text-xs mt-1">{errors.cityMunicipality}</p>}
+                    <FieldError msg={errors.cityMunicipality} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Language</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Language</label>
                     <div className="flex gap-4">
                       {[{ val: 'en', label: 'English' }, { val: 'fil', label: 'Filipino' }].map(({ val, label }) => (
                         <label key={val} className="flex items-center gap-2 cursor-pointer">
@@ -210,12 +219,12 @@ const SignUp = () => {
 
                   {errors.submit && (
                     <div className="flex items-center gap-2 text-red-700 bg-red-50 border border-red-100 p-3 rounded-xl text-sm">
-                      <AlertCircle size={16} className="shrink-0" />
+                      <AlertCircle size={15} className="shrink-0" />
                       <span>{errors.submit}</span>
                     </div>
                   )}
 
-                  <div className="flex gap-3 mt-2">
+                  <div className="flex gap-3 mt-1">
                     <button type="button" onClick={() => setStep(1)} className="btn-secondary flex-1 flex items-center justify-center gap-2">
                       <ChevronLeft size={16} /> Back
                     </button>

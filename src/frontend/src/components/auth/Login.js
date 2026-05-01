@@ -9,18 +9,19 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [errors, setErrors] = useState({});
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, formData, { withCredentials: true });
+      const response = await axios.post('http://localhost:5000/api/auth/login', formData, { withCredentials: true });
       login(response.data.data.user);
       navigate('/dashboard');
-    } catch (error) {
-      setErrors({ submit: error.response?.data?.message || 'Login failed' });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -32,23 +33,27 @@ const Login = () => {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="bg-white rounded-3xl shadow-card w-full max-w-md overflow-hidden border border-gray-100"
+        className="bg-white rounded-3xl shadow-card w-full max-w-md overflow-hidden border border-gray-200"
       >
-        <div className="px-8 pt-8 pb-6 border-b border-gray-100">
-          <div className="flex items-center gap-2 mb-1">
+        {/* Card header */}
+        <div className="px-8 pt-8 pb-5 border-b border-gray-100">
+          <div className="flex items-center gap-2.5 mb-1">
             <img src="/logo.png" alt="MataBayan" className="h-8 w-auto" />
             <span className="text-lg font-bold text-ink tracking-tight">MataBayan</span>
           </div>
           <p className="text-sm text-subtle">Disaster Alert & Preparedness System</p>
         </div>
 
+        {/* Card body */}
         <div className="px-8 py-8">
-          <h2 className="text-2xl font-bold text-ink mb-1">Welcome back</h2>
-          <p className="text-sm text-subtle mb-7">Sign in to your account</p>
+          <h2 className="text-xl font-bold text-ink mb-1">Welcome back</h2>
+          <p className="text-sm text-subtle mb-6">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email Address</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
+                Email Address
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
                 <input
@@ -63,7 +68,9 @@ const Login = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Password</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
                 <input
@@ -77,14 +84,14 @@ const Login = () => {
               </div>
             </div>
 
-            {errors.submit && (
+            {error && (
               <div className="flex items-center gap-2 text-red-700 bg-red-50 border border-red-100 p-3 rounded-xl text-sm">
-                <AlertCircle size={16} className="shrink-0" />
-                <span>{errors.submit}</span>
+                <AlertCircle size={15} className="shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
+            <button type="submit" disabled={loading} className="btn-primary w-full mt-1">
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
