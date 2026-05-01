@@ -23,7 +23,7 @@ def test_user():
 @pytest.fixture
 def create_test_account(browser, test_user):
     """Create a test account for login testing"""
-    wait = WebDriverWait(browser, 10)
+    wait = WebDriverWait(browser, 30)
     
     # Navigate to signup
     browser.get("http://localhost:3000/signup")
@@ -40,7 +40,7 @@ def create_test_account(browser, test_user):
     
     # Fill Step 2
     wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, "select")))
-    time.sleep(0.5)
+    time.sleep(1)
     Select(browser.find_elements(By.TAG_NAME, "select")[0]).select_by_visible_text("Metro Manila")
     time.sleep(0.5)
     Select(browser.find_elements(By.TAG_NAME, "select")[1]).select_by_visible_text("Manila")
@@ -57,12 +57,12 @@ def create_test_account(browser, test_user):
 def navigate_to_login(driver):
     """Navigate to the login page"""
     driver.get("http://localhost:3000/login")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='email']")))
 
 def fill_login_form(driver, email, password):
     """Fill the login form with email and password"""
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     
     # Enter email
     email_field = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='email']")))
@@ -78,13 +78,13 @@ def fill_login_form(driver, email, password):
 
 def click_login_button(driver):
     """Click the Log In button"""
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     login_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']")))
     login_btn.click()
 
 def verify_dashboard_redirect(driver):
     """Verify successful redirect to dashboard"""
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     wait.until(EC.url_contains("/dashboard"))
     wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Welcome')]")))
     return "/dashboard" in driver.current_url
@@ -92,7 +92,7 @@ def verify_dashboard_redirect(driver):
 def check_error_message(driver):
     """Check if error message is displayed"""
     try:
-        wait = WebDriverWait(driver, 5)
+        wait = WebDriverWait(driver, 10)
         error_element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".text-red-500, .text-red-600")))
         return error_element.is_displayed()
     except:

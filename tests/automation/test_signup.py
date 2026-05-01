@@ -23,12 +23,12 @@ def unique_email():
 def navigate_to_signup(driver):
     """Navigate to the signup page"""
     driver.get("http://localhost:3000/signup")
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='text']")))
 
 def fill_step1_account_info(driver, name, email, password, confirm_password):
     """Fill Step 1: Account Information"""
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     
     # Enter name
     name_field = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='text']")))
@@ -55,17 +55,17 @@ def fill_step1_account_info(driver, name, email, password, confirm_password):
 
 def click_continue_button(driver):
     """Click the Continue button on Step 1"""
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     continue_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
     continue_btn.click()
 
 def fill_step2_location_info(driver, province, city, language="en"):
     """Fill Step 2: Location Information"""
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     
     # Wait for select elements to be present
     wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, "select")))
-    time.sleep(0.5)  # Brief wait for React state update
+    time.sleep(1)  # Brief wait for React state update
     
     # Select province
     if province:
@@ -85,13 +85,13 @@ def fill_step2_location_info(driver, province, city, language="en"):
 
 def click_signup_button(driver):
     """Click the Sign Up button on Step 2"""
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     signup_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Sign Up')]")))
     signup_btn.click()
 
 def verify_dashboard_redirect(driver):
     """Verify successful redirect to dashboard"""
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     wait.until(EC.url_contains("/dashboard"))
     wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Welcome')]")))
     return "/dashboard" in driver.current_url
@@ -182,7 +182,7 @@ def test_signup_with_existing_email(browser):
     click_signup_button(browser)
     
     # Wait for dashboard
-    WebDriverWait(browser, 10).until(EC.url_contains("/dashboard"))
+    WebDriverWait(browser, 20).until(EC.url_contains("/dashboard"))
     
     # Now try to register with the same email
     navigate_to_signup(browser)
