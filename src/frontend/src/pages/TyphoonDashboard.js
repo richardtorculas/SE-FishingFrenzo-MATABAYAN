@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Wind, AlertTriangle, MapPin, Clock, RefreshCw, Navigation, Compass, BarChart2, Loader } from 'lucide-react';
+import { Wind, AlertTriangle, MapPin, Clock, RefreshCw, Navigation, Compass, BarChart2, Loader, History } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadialBarChart, RadialBar, Legend
@@ -34,6 +34,7 @@ const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'charts',   label: 'Charts'   },
   { id: 'map',      label: 'Map'      },
+  { id: 'historical', label: 'Historical' },
 ];
 
 const getWindBar = (windKph) => {
@@ -108,6 +109,15 @@ const TyphoonCard = ({ typhoon }) => {
         </div>
       )}
 
+      {typhoon.isHistorical && (
+        <div className="mb-3">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-100 text-blue-700 flex items-center gap-1 w-fit">
+            <History size={12} />
+            Historical ({new Date(typhoon.timestamp).getFullYear()})
+          </span>
+        </div>
+      )}
+
       <div className="mb-3">
         <div className="flex justify-between text-xs text-subtle mb-1">
           <span>Wind Speed</span>
@@ -150,7 +160,11 @@ const TyphoonCard = ({ typhoon }) => {
         <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-600">{typhoon.source}</span>
         <div className="flex items-center gap-1 text-xs text-subtle">
           <Clock size={11} />
-          {new Date(typhoon.timestamp).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          {typhoon.parEntryDate ? (
+            <span>{new Date(typhoon.parEntryDate + 'T00:00:00Z').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          ) : (
+            <span>{new Date(typhoon.timestamp).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          )}
         </div>
       </div>
     </div>
@@ -167,7 +181,7 @@ const WindSpeedChart = ({ typhoons }) => (
       <p className="text-sm font-semibold text-ink">Wind Speed Comparison (km/h)</p>
     </div>
     {typhoons.length === 0 ? (
-      <p className="text-xs text-subtle text-center py-8">No active cyclones to display</p>
+      <p className="text-xs text-subtle text-center py-8">No cyclones to display</p>
     ) : (
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={typhoons.map(t => ({ name: t.name, windKph: t.windKph }))} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
@@ -192,7 +206,7 @@ const CategoryChart = ({ typhoons }) => {
         <p className="text-sm font-semibold text-ink">Storm Category Distribution</p>
       </div>
       {data.length === 0 ? (
-        <p className="text-xs text-subtle text-center py-8">No active cyclones to display</p>
+        <p className="text-xs text-subtle text-center py-8">No cyclones to display</p>
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <RadialBarChart innerRadius="20%" outerRadius="90%" data={data} startAngle={180} endAngle={0}>
@@ -306,25 +320,43 @@ const TyphoonDashboard = () => {
     setError(null);
     try {
       await axios.post('http://localhost:5000/api/typhoons/update');
-      await loadData();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const tRes = await axios.get('http://localhost:5000/api/typhoons');
+      setTyphoons(tRes.data.data || []);
+      setLastUpdated(new Date());
     } catch {
       setError('Failed to fetch from PAGASA. Check your internet connection.');
+      setRefreshing(false);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  const seedHistoricalData = useCallback(async () => {
+    setRefreshing(true);
+    setError(null);
+    try {
+      await axios.post('http://localhost:5000/api/typhoons/historical');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await loadData();
+    } catch {
+      setError('Failed to load historical data from PAGASA.');
       setRefreshing(false);
     }
   }, [loadData]);
 
   useEffect(() => {
     const init = async () => {
-      setLoading(true);
-      try { await axios.post('http://localhost:5000/api/typhoons/update'); } catch (_) {}
-      await loadData();
+      setLoading(false);
     };
     init();
     const interval = setInterval(triggerUpdate, 30 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [loadData, triggerUpdate]);
+  }, [triggerUpdate]);
 
-  const activeCritical = typhoons.find(t => ['Critical', 'High'].includes(t.severity));
+  const activeTyphoons = typhoons.filter(t => !t.isHistorical);
+  const historicalTyphoons = typhoons.filter(t => t.isHistorical);
+  const activeCritical = activeTyphoons.find(t => ['Critical', 'High'].includes(t.severity));
   const strongestStorm = typhoons.reduce((max, t) => (!max || t.windKph > max.windKph ? t : max), null);
 
   return (
@@ -337,7 +369,7 @@ const TyphoonDashboard = () => {
             <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">PAGASA</p>
             <h1 className="text-2xl font-bold text-ink tracking-tight mb-1">Typhoon Monitor</h1>
             <p className="text-sm text-subtle">
-              Active Tropical Cyclones — Philippine Area of Responsibility
+              Tropical Cyclones — Philippine Area of Responsibility
               {lastUpdated && <span className="ml-2">· Updated {lastUpdated.toLocaleTimeString('en-PH')}</span>}
             </p>
             <p className="text-xs text-gray-400 mt-0.5">Fallback: JTWC · Auto-refreshes every 30 minutes</p>
@@ -362,10 +394,10 @@ const TyphoonDashboard = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <StatCard label="Active Cyclones" value={stats?.total ?? typhoons.length}                               icon={<Wind size={18} className="text-gray-500" />}         color="bg-gray-50" />
+          <StatCard label="Total Cyclones" value={stats?.total ?? '—'}                               icon={<Wind size={18} className="text-gray-500" />}         color="bg-gray-50" />
           <StatCard label="Highest Winds"   value={stats?.highestWindKph ? `${stats.highestWindKph} km/h` : '—'} icon={<AlertTriangle size={18} className="text-red-400" />} color="bg-red-50"  />
-          <StatCard label="Strongest Storm" value={stats?.highestStormName ?? 'None'}                             icon={<Wind size={18} className="text-gray-500" />}         color="bg-gray-50" />
-          <StatCard label="Category"        value={stats?.highestCategory ?? 'None'}                              icon={<BarChart2 size={18} className="text-gray-500" />}    color="bg-gray-50" />
+          <StatCard label="Most Intense"    value={stats?.highestStormName ? `${stats.highestStormName}` : '—'} subtext={stats?.highestStormCategory ?? ''} icon={<Wind size={18} className="text-gray-500" />}         color="bg-gray-50" />
+          <StatCard label="Active Cyclone" value={stats?.activeCycloneName ? `${stats.activeCycloneName}` : '—'}                              icon={<BarChart2 size={18} className="text-gray-500" />}    color="bg-gray-50" />
         </div>
 
         {/* Tabs */}
@@ -374,7 +406,7 @@ const TyphoonDashboard = () => {
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px ${
+              className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px whitespace-nowrap ${
                 activeTab === id ? 'border-ink text-ink' : 'border-transparent text-subtle hover:text-gray-700'
               }`}
             >
@@ -399,11 +431,14 @@ const TyphoonDashboard = () => {
                 ))}
               </div>
             </div>
-            {typhoons.length === 0 ? (
-              <EmptyState message="No Active Tropical Cyclones" sub="There are currently no tropical cyclones in the Philippine Area of Responsibility." />
+            {activeTyphoons.length === 0 ? (
+              <EmptyState 
+                message="No Active Tropical Cyclones" 
+                sub="There are currently no tropical cyclones in the Philippine Area of Responsibility. Check the Historical tab to view past typhoons."
+              />
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
-                {typhoons.map(t => <TyphoonCard key={t._id} typhoon={t} />)}
+                {activeTyphoons.map(t => <TyphoonCard key={t._id} typhoon={t} />)}
               </div>
             )}
           </>
@@ -411,24 +446,55 @@ const TyphoonDashboard = () => {
         ) : activeTab === 'charts' ? (
           <>
             <div className="grid md:grid-cols-2 gap-4 mb-6">
-              <WindSpeedChart typhoons={typhoons} />
-              <CategoryChart  typhoons={typhoons} />
+              <WindSpeedChart typhoons={activeTyphoons} />
+              <CategoryChart  typhoons={activeTyphoons} />
             </div>
-            {strongestStorm && <TrajectoryChart typhoon={strongestStorm} />}
+            {strongestStorm && !strongestStorm.isHistorical && <TrajectoryChart typhoon={strongestStorm} />}
           </>
 
         ) : activeTab === 'map' ? (
           <>
-            <CycloneMap typhoons={typhoons} />
-            {typhoons.filter(t => t.trajectory?.length > 1).map(t => (
+            <CycloneMap typhoons={activeTyphoons} />
+            {activeTyphoons.filter(t => t.trajectory?.length > 1).map(t => (
               <TrajectoryChart key={t._id} typhoon={t} />
             ))}
+          </>
+
+        ) : activeTab === 'historical' ? (
+          <>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-ink mb-1">2026 Historical Typhoon Data</p>
+                <p className="text-xs text-subtle">Past tropical cyclones from PAGASA preliminary reports</p>
+              </div>
+              <button onClick={seedHistoricalData} disabled={refreshing} className="btn-secondary flex items-center gap-2">
+                <History size={15} />
+                {refreshing ? 'Loading...' : 'Load Historical Data'}
+              </button>
+            </div>
+            {historicalTyphoons.length === 0 ? (
+              <EmptyState 
+                message="No Historical Data Loaded" 
+                sub="Click 'Load Historical Data' to fetch past typhoons from PAGASA."
+              />
+            ) : (
+              <>
+                <div className="grid md:grid-cols-2 gap-4 mb-6">
+                  <WindSpeedChart typhoons={historicalTyphoons} />
+                  <CategoryChart  typhoons={historicalTyphoons} />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {historicalTyphoons.map(t => <TyphoonCard key={t._id} typhoon={t} />)}
+                </div>
+              </>
+            )}
           </>
         ) : null}
 
         <p className="text-center text-xs text-gray-400 mt-10">
-          Primary data: <a href="https://bagong.pagasa.dost.gov.ph/tropical-cyclone/weather-bulletin" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">PAGASA — DOST</a>
-          &nbsp;· Fallback: JTWC Western Pacific · Map: Windy.com
+          Primary data: <a href="https://www.pagasa.dost.gov.ph/tropical-cyclone/publications/preliminary-report" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">PAGASA Preliminary Reports</a>
+          &nbsp;· Active: <a href="https://bagong.pagasa.dost.gov.ph/tropical-cyclone/weather-bulletin" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">PAGASA Weather Bulletin</a>
+          &nbsp;· Fallback: JTWC · Map: Windy.com
         </p>
       </div>
     </div>
