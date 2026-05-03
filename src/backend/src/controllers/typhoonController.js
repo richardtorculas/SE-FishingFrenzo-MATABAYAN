@@ -8,14 +8,14 @@
  */
 
 const Typhoon = require('../models/Typhoon');
-const { fetchTyphoonData } = require('../services/pagasaService');
+const { fetchTyphoonData, fetchHistoricalTyphoons } = require('../services/pagasaService');
 
 // GET /api/typhoons
 const getTyphoons = async (req, res) => {
   try {
     const typhoons = await Typhoon.find()
-      .sort({ timestamp: -1 })
-      .limit(20);
+      .sort({ parEntryDate: -1, timestamp: -1 })
+      .limit(10);
     res.json({ status: 'success', count: typhoons.length, data: typhoons });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -77,6 +77,7 @@ const updateTyphoonData = async (req, res) => {
               movementDirection: cyclone.movementDirection,
               movementSpeedKph:  cyclone.movementSpeedKph,
               description:       cyclone.description,
+              isHistorical:      cyclone.isHistorical,
               timestamp:         cyclone.timestamp,
               stormKey:          cyclone.stormKey
             }
@@ -112,22 +113,21 @@ const updateTyphoonData = async (req, res) => {
 // GET /api/typhoons/stats
 const getTyphoonStats = async (req, res) => {
   try {
-    const [total, bySeverity, highestWind] = await Promise.all([
+    const [total, highestWind, activeCyclone] = await Promise.all([
       Typhoon.countDocuments(),
-      Typhoon.aggregate([
-        { $group: { _id: '$severity', count: { $sum: 1 } } }
-      ]),
-      Typhoon.findOne().sort({ windKph: -1 })
+      Typhoon.findOne().sort({ windKph: -1 }),
+      Typhoon.findOne({ isHistorical: false }).sort({ parEntryDate: -1, timestamp: -1 })
     ]);
 
     res.json({
       status: 'success',
       data: {
         total,
-        bySeverity,
-        highestWindKph:   highestWind?.windKph    ?? 0,
-        highestCategory:  highestWind?.category   ?? 'None',
-        highestStormName: highestWind?.name        ?? 'None'
+        highestWindKph:   highestWind?.windKph    ?? null,
+        highestStormName: highestWind?.name        ?? null,
+        highestStormCategory: highestWind?.category ?? null,
+        activeCycloneName: activeCyclone?.name ?? null,
+        activeCycloneCategory: activeCyclone?.category ?? null
       }
     });
   } catch (error) {
@@ -138,11 +138,70 @@ const getTyphoonStats = async (req, res) => {
 // DELETE /api/typhoons/clear
 const clearTyphoons = async (req, res) => {
   try {
-    await Typhoon.deleteMany({});
-    res.json({ status: 'success', message: 'All typhoon records cleared' });
+    const result = await Typhoon.deleteMany({});
+    res.json({ status: 'success', message: `Cleared ${result.deletedCount} typhoon records` });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
 
-module.exports = { getTyphoons, updateTyphoonData, getTyphoonStats, clearTyphoons };
+// POST /api/typhoons/historical
+const seedHistoricalTyphoons = async (req, res) => {
+  try {
+    console.log('📚 Starting historical typhoon seeding...');
+    const historicalData = await fetchHistoricalTyphoons();
+    console.log(`📊 Fetched ${historicalData.length} historical typhoons`);
+
+    if (historicalData.length === 0) {
+      return res.json({
+        status: 'success',
+        message: 'No historical typhoon data found',
+        count: 0
+      });
+    }
+
+    let newCount = 0;
+    const limitedData = historicalData.slice(0, 10);
+
+    for (const cyclone of limitedData) {
+      try {
+        console.log(`🔍 Processing ${cyclone.name}...`);
+        
+        const result = await Typhoon.updateOne(
+          { stormKey: cyclone.stormKey },
+          { $set: cyclone },
+          { upsert: true }
+        );
+        
+        if (result.upsertedId) {
+          console.log(`✅ Created ${cyclone.name}`);
+          newCount++;
+        } else if (result.modifiedCount > 0) {
+          console.log(`🔄 Updated ${cyclone.name}`);
+        } else {
+          console.log(`⏭️  ${cyclone.name} unchanged`);
+        }
+      } catch (err) {
+        console.error(`❌ Error saving ${cyclone.name}:`, err.message);
+      }
+    }
+
+    // Keep only 10 most recent records by timestamp
+    const allTyphoons = await Typhoon.find().sort({ timestamp: -1 }).limit(10);
+    const keepIds = allTyphoons.map(t => t._id);
+    await Typhoon.deleteMany({ _id: { $nin: keepIds } });
+    console.log(`🗑️  Cleaned up old records, keeping only 10 most recent`);
+
+    console.log(`📈 Historical seeding complete: ${newCount} records processed (limited to 10 most recent)`);
+    res.json({
+      status: 'success',
+      message: `Historical data seeded — ${newCount} record(s) processed (limited to 10 most recent)`,
+      newCount
+    });
+  } catch (error) {
+    console.error('❌ Historical seeding error:', error.message);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+module.exports = { getTyphoons, updateTyphoonData, getTyphoonStats, clearTyphoons, seedHistoricalTyphoons };
