@@ -47,7 +47,7 @@ const triggerEarthquakeAlerts = async (earthquake) => {
       try {
         const alert = await Alert.create({
           userId: userAlert.userId,
-          earthquakeId: userAlert.earthquakeId,
+          earthquakeId: earthquake._id,
           magnitude: userAlert.magnitude,
           depth: userAlert.depth,
           location: userAlert.location,
