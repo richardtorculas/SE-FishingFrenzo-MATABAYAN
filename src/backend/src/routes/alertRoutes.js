@@ -21,7 +21,7 @@ const {
 // Get all alerts for user
 router.get('/', protect, getUserAlerts);
 
-// Get alert logs
+// Get alert logs with filtering
 router.get('/logs', protect, getAlertLogs);
 
 // Get active alerts (last 24 hours)

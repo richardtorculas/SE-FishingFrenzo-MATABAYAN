@@ -13,11 +13,54 @@ const { triggerEarthquakeAlerts } = require('../services/alertTriggerService');
 
 const getEarthquakes = async (req, res) => {
   try {
-    const earthquakes = await Earthquake.find()
-      .sort({ timestamp: -1 })
-      .limit(50);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    const magnitude = req.query.magnitude;
+    const province = req.query.province;
 
-    res.json({ status: 'success', count: earthquakes.length, data: earthquakes });
+    let filter = {};
+    if (magnitude) {
+      filter['metadata.magnitude'] = { $gte: parseFloat(magnitude) };
+    }
+    if (province) {
+      filter.province = province;
+    }
+
+    const [earthquakes, total] = await Promise.all([
+      Earthquake.find(filter)
+        .sort({ timestamp: -1 })
+        .skip(skip)
+        .limit(limit),
+      Earthquake.countDocuments(filter)
+    ]);
+
+    res.json({
+      status: 'success',
+      count: earthquakes.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: earthquakes
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+const getEarthquakeById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const earthquake = await Earthquake.findById(id);
+
+    if (!earthquake) {
+      return res.status(404).json({ status: 'error', message: 'Earthquake not found' });
+    }
+
+    res.json({
+      status: 'success',
+      data: earthquake
+    });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
@@ -85,4 +128,4 @@ const clearEarthquakes = async (req, res) => {
   }
 };
 
-module.exports = { getEarthquakes, updateEarthquakeData, getEarthquakeStats, clearEarthquakes };
+module.exports = { getEarthquakes, getEarthquakeById, updateEarthquakeData, getEarthquakeStats, clearEarthquakes };

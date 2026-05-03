@@ -8,9 +8,10 @@
 
 const express = require('express');
 const router = express.Router();
-const { getEarthquakes, updateEarthquakeData, getEarthquakeStats, clearEarthquakes } = require('../controllers/earthquakeController');
+const { getEarthquakes, getEarthquakeById, updateEarthquakeData, getEarthquakeStats, clearEarthquakes } = require('../controllers/earthquakeController');
 
 router.get('/', getEarthquakes);
+router.get('/:id', getEarthquakeById);
 router.get('/stats', getEarthquakeStats);
 router.post('/update', updateEarthquakeData);
 router.delete('/clear', clearEarthquakes);

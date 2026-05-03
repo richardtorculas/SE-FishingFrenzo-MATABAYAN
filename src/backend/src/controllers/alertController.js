@@ -11,17 +11,46 @@ const Alert = require('../models/Alert');
 const { protect } = require('../middleware/authMiddleware');
 
 /**
- * Get all alerts for logged-in user
+ * Get all alerts for logged-in user with pagination and filtering
  */
 const getUserAlerts = async (req, res) => {
   try {
-    const alerts = await Alert.find({ userId: req.user.id })
-      .sort({ sentAt: -1 })
-      .limit(100);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    const magnitude = req.query.magnitude;
+    const status = req.query.status;
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+
+    let filter = { userId: req.user.id };
+
+    if (magnitude) {
+      filter.magnitude = { $gte: parseFloat(magnitude) };
+    }
+    if (status) {
+      filter.status = status;
+    }
+    if (startDate || endDate) {
+      filter.sentAt = {};
+      if (startDate) filter.sentAt.$gte = new Date(startDate);
+      if (endDate) filter.sentAt.$lte = new Date(endDate);
+    }
+
+    const [alerts, total] = await Promise.all([
+      Alert.find(filter)
+        .sort({ sentAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Alert.countDocuments(filter)
+    ]);
 
     res.json({
       status: 'success',
       count: alerts.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
       data: alerts
     });
   } catch (error) {
@@ -30,17 +59,46 @@ const getUserAlerts = async (req, res) => {
 };
 
 /**
- * Get alert logs (same as getUserAlerts, for compatibility)
+ * Get alert logs with pagination and filtering
  */
 const getAlertLogs = async (req, res) => {
   try {
-    const alerts = await Alert.find({ userId: req.user.id })
-      .sort({ sentAt: -1 })
-      .limit(100);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    const magnitude = req.query.magnitude;
+    const location = req.query.location;
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+
+    let filter = { userId: req.user.id };
+
+    if (magnitude) {
+      filter.magnitude = { $gte: parseFloat(magnitude) };
+    }
+    if (location) {
+      filter.location = { $regex: location, $options: 'i' };
+    }
+    if (startDate || endDate) {
+      filter.sentAt = {};
+      if (startDate) filter.sentAt.$gte = new Date(startDate);
+      if (endDate) filter.sentAt.$lte = new Date(endDate);
+    }
+
+    const [alerts, total] = await Promise.all([
+      Alert.find(filter)
+        .sort({ sentAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Alert.countDocuments(filter)
+    ]);
 
     res.json({
       status: 'success',
       count: alerts.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
       data: alerts
     });
   } catch (error) {
