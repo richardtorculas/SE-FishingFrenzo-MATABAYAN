@@ -66,11 +66,15 @@ const Navbar = () => {
                   <Bell size={15} />
                   Dashboard
                 </Link>
+                
                 <div className="flex items-center gap-2 ml-3 pl-3 border-l border-gray-200">
-                  <span className="text-sm text-gray-600 flex items-center gap-1.5">
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all"
+                  >
                     <User size={15} className="text-gray-400" />
                     {user.name}
-                  </span>
+                  </button>
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-3 py-2 rounded-lg transition-all"
@@ -128,10 +132,16 @@ const Navbar = () => {
                 Dashboard
               </Link>
               <div className="pt-3 mt-3 border-t border-gray-100 flex items-center justify-between">
-                <span className="text-sm text-gray-600 flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    navigate('/profile');
+                    setMobileOpen(false);
+                  }}
+                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all"
+                >
                   <User size={15} className="text-gray-400" />
                   {user.name}
-                </span>
+                </button>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all"

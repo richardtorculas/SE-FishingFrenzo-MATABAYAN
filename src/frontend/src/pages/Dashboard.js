@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Bell, MapPin, Globe, Cloud, Pencil, Check, X, Activity, Wind, Phone, Mail } from 'lucide-react';
-import { provinces, citiesByProvince } from '../utils/phLocations';
+import { Bell, Cloud, Activity, Wind } from 'lucide-react';
 
 const CardHeader = ({ icon: Icon, title }) => (
   <div className="flex items-center gap-3 mb-5">
@@ -15,85 +14,29 @@ const CardHeader = ({ icon: Icon, title }) => (
 );
 
 const Dashboard = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [editing, setEditing] = useState(false);
-  const [province, setProvince] = useState(user?.preferences?.province || '');
-  const [city, setCity] = useState(user?.preferences?.cityMunicipality || '');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
-  const [notificationPreferences, setNotificationPreferences] = useState(user?.notificationPreferences || {
-    smsEnabled: false,
-    emailEnabled: true,
-    inAppEnabled: true
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  useEffect(() => {
+    fetchAlerts();
+  }, []);
 
-  const availableCities = province ? (citiesByProvince[province] || []).sort() : [];
-
-  const handleProvinceChange = (e) => {
-    setProvince(e.target.value);
-    setCity('');
-    setError(null);
-  };
-
-  const handleNotificationChange = (channel) => {
-    setNotificationPreferences(prev => ({
-      ...prev,
-      [channel]: !prev[channel]
-    }));
-  };
-
-  const handleSave = async () => {
-    if (!province) return setError('Please select a province.');
-    if (!city) return setError('Please select a city/municipality.');
-    setSaving(true);
-    setError(null);
+  const fetchAlerts = async () => {
     try {
-      // Update location via existing endpoint
-      const locationRes = await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/auth/location`,
-        { province, cityMunicipality: city },
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/alerts/logs`,
         { withCredentials: true }
       );
-
-      // Update preferences via new endpoint
-      const prefsRes = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/user/preferences`,
-        {
-          phoneNumber,
-          notificationPreferences
-        },
-        { withCredentials: true }
-      );
-
-      updateUser({
-        ...locationRes.data.user,
-        phoneNumber: prefsRes.data.data.phoneNumber,
-        notificationPreferences: prefsRes.data.data.notificationPreferences
-      });
-      setSuccess(true);
-      setEditing(false);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update settings.');
+      
+      if (response.data.data) {
+        setAlerts(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching alerts:', error);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
-  };
-
-  const handleCancel = () => {
-    setProvince(user?.preferences?.province || '');
-    setCity(user?.preferences?.cityMunicipality || '');
-    setPhoneNumber(user?.phoneNumber || '');
-    setNotificationPreferences(user?.notificationPreferences || {
-      smsEnabled: false,
-      emailEnabled: true,
-      inAppEnabled: true
-    });
-    setError(null);
-    setEditing(false);
   };
 
   return (
@@ -102,202 +45,107 @@ const Dashboard = () => {
 
         {/* Page header */}
         <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">Dashboard</p>
-          <h1 className="text-2xl font-bold text-ink tracking-tight">Welcome, {user?.name}</h1>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
-
-          {/* Location Card */}
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6">
-            <div className="flex items-center justify-between mb-5">
-              <CardHeader icon={MapPin} title="Your Location" />
-              {!editing && (
-                <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-xs text-subtle hover:text-ink transition-colors -mt-5">
-                  <Pencil size={13} /> Edit
-                </button>
-              )}
-            </div>
-
-            {!editing ? (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-subtle">Province</span>
-                  <span className="font-medium text-ink">{user?.preferences?.province || '—'}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-subtle">City / Municipality</span>
-                  <span className="font-medium text-ink">{user?.preferences?.cityMunicipality || '—'}</span>
-                </div>
-                {success && (
-                  <p className="text-emerald-600 text-xs mt-2 font-medium pt-2 border-t border-gray-100">
-                    Settings updated successfully.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Province</label>
-                  <select value={province} onChange={handleProvinceChange} className="input-field">
-                    <option value="">Select province...</option>
-                    {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">City / Municipality</label>
-                  <select value={city} onChange={e => { setCity(e.target.value); setError(null); }} disabled={!province} className="input-field disabled:bg-gray-50 disabled:cursor-not-allowed">
-                    <option value="">Select city/municipality...</option>
-                    {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Preferences Card */}
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6">
-            <CardHeader icon={Globe} title="Preferences" />
-            {!editing ? (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-subtle">Language</span>
-                  <span className="font-medium text-ink">
-                    {user?.preferences?.language === 'en' ? 'English' : 'Filipino'}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Language</label>
-                  <select className="input-field" defaultValue={user?.preferences?.language || 'en'}>
-                    <option value="en">English</option>
-                    <option value="fil">Filipino</option>
-                  </select>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Contact & Notifications Card */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6 mb-4">
-          <div className="flex items-center justify-between mb-5">
-            <CardHeader icon={Phone} title="Contact & Notifications" />
-          </div>
-
-          {!editing ? (
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-subtle">Email</span>
-                <span className="font-medium text-ink">{user?.email || '—'}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-subtle">Phone Number</span>
-                <span className="font-medium text-ink">{user?.phoneNumber || 'Not set'}</span>
-              </div>
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Notification Channels</p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-subtle">SMS Notifications</span>
-                    <span className={`font-medium ${user?.notificationPreferences?.smsEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
-                      {user?.notificationPreferences?.smsEnabled ? '✓ Enabled' : 'Disabled'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-subtle">Email Notifications</span>
-                    <span className={`font-medium ${user?.notificationPreferences?.emailEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
-                      {user?.notificationPreferences?.emailEnabled ? '✓ Enabled' : 'Disabled'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-subtle">In-App Notifications</span>
-                    <span className={`font-medium ${user?.notificationPreferences?.inAppEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
-                      {user?.notificationPreferences?.inAppEnabled ? '✓ Enabled' : 'Disabled'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Phone Number</label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={e => setPhoneNumber(e.target.value)}
-                  placeholder="+639123456789"
-                  className="input-field"
-                />
-                <p className="text-xs text-gray-500 mt-1">Format: +639XXXXXXXXX</p>
-              </div>
-
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Notification Channels</p>
-                <div className="space-y-3">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notificationPreferences.smsEnabled}
-                      onChange={() => handleNotificationChange('smsEnabled')}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="ml-2.5 text-sm text-gray-700">SMS Notifications</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notificationPreferences.emailEnabled}
-                      onChange={() => handleNotificationChange('emailEnabled')}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="ml-2.5 text-sm text-gray-700">Email Notifications</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notificationPreferences.inAppEnabled}
-                      onChange={() => handleNotificationChange('inAppEnabled')}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="ml-2.5 text-sm text-gray-700">In-App Notifications</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {error && <p className="text-red-600 text-xs mt-4">{error}</p>}
-
-          {editing && (
-            <div className="flex gap-2 pt-4 mt-4 border-t border-gray-100">
-              <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-1.5 text-xs px-4 py-2">
-                <Check size={13} /> {saving ? 'Saving...' : 'Save'}
-              </button>
-              <button onClick={handleCancel} className="btn-secondary flex items-center gap-1.5 text-xs px-4 py-2">
-                <X size={13} /> Cancel
-              </button>
-            </div>
-          )}
-
-          {!editing && (
-            <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 transition-colors mt-4 pt-4 border-t border-gray-100">
-              <Pencil size={13} /> Edit Settings
-            </button>
-          )}
+          <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">Notifications</p>
+          <h1 className="text-2xl font-bold text-ink tracking-tight">Alerts & Updates</h1>
         </div>
 
         {/* Active Alerts */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6 mb-4">
           <CardHeader icon={Bell} title="Active Alerts" />
-          <p className="text-sm text-subtle">
-            {user?.preferences?.province
-              ? `No active alerts for ${user.preferences.province} at this time.`
-              : 'Set your location to see alerts for your area.'}
-          </p>
+          {loading ? (
+            <p className="text-sm text-subtle">Loading alerts...</p>
+          ) : alerts.length > 0 ? (
+            <div className="space-y-3">
+              {alerts.map((alert) => (
+                <div key={alert._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-sm text-ink">Earthquake Alert</h3>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-800">
+                          {alert.severity?.toUpperCase() || 'ALERT'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                        <div>
+                          <span className="text-subtle">Magnitude:</span>
+                          <p className="font-semibold text-ink">{alert.magnitude}</p>
+                        </div>
+                        <div>
+                          <span className="text-subtle">Distance:</span>
+                          <p className="font-semibold text-ink">{alert.distance} km</p>
+                        </div>
+                        <div>
+                          <span className="text-subtle">Depth:</span>
+                          <p className="font-semibold text-ink">{alert.depth} km</p>
+                        </div>
+                        <div>
+                          <span className="text-subtle">Location:</span>
+                          <p className="font-semibold text-ink truncate">{alert.location}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-subtle">
+                        {new Date(alert.sentAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-subtle">
+              {user?.preferences?.province
+                ? `No active alerts for ${user.preferences.province} at this time.`
+                : 'Set your location to see alerts for your area.'}
+            </p>
+          )}
+        </div>
+
+        {/* Alert History */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6 mb-4">
+          <CardHeader icon={Bell} title="Alert History" />
+          {loading ? (
+            <p className="text-sm text-subtle">Loading history...</p>
+          ) : alerts.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Date & Time</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Location</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Magnitude</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Distance</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Depth</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {alerts.map((alert) => (
+                    <tr key={alert._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-3 text-xs text-subtle">
+                        {new Date(alert.sentAt).toLocaleString()}
+                      </td>
+                      <td className="py-3 px-3 text-sm text-gray-700 truncate">
+                        {alert.location}
+                      </td>
+                      <td className="py-3 px-3 text-center font-semibold text-ink">
+                        {alert.magnitude}
+                      </td>
+                      <td className="py-3 px-3 text-center text-gray-700">
+                        {alert.distance} km
+                      </td>
+                      <td className="py-3 px-3 text-center text-gray-700">
+                        {alert.depth} km
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-subtle">
+              No alerts received yet. Alerts will appear here when earthquakes occur near your location.
+            </p>
+          )}
         </div>
 
         {/* Quick Links */}

@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 import AdminUsers from './pages/AdminUsers';
 import EarthquakeDashboard from './pages/EarthquakeDashboard';
 import TyphoonDashboard from './pages/TyphoonDashboard';
@@ -31,6 +32,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />
