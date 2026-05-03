@@ -17,7 +17,7 @@ const Login = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData, { withCredentials: true });
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, formData, { withCredentials: true });
       login(response.data.data.user);
       navigate('/dashboard');
     } catch (err) {
