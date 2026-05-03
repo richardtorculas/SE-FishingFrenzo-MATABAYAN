@@ -143,14 +143,15 @@ const formatEarthquakeDetails = (earthquake) => {
 
 /**
  * Check if earthquake is significant enough to process
+ * ALL earthquakes are now processed (no magnitude threshold)
  * @param {object} earthquake - Earthquake data
- * @returns {boolean} True if earthquake should be processed
+ * @returns {boolean} True if earthquake has valid data
  */
 const isSignificantEarthquake = (earthquake) => {
-  const magnitude = earthquake.metadata?.magnitude || 0;
-  const minMagnitude = 3.0; // Minimum magnitude to process
-  
-  return magnitude >= minMagnitude;
+  // Check if earthquake has valid coordinates and magnitude data
+  return earthquake.metadata?.latitude !== undefined &&
+         earthquake.metadata?.longitude !== undefined &&
+         earthquake.metadata?.magnitude !== undefined;
 };
 
 module.exports = {

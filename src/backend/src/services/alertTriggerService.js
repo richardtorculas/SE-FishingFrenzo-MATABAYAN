@@ -17,13 +17,13 @@ const { sendBulkNotifications } = require('./notificationService');
  */
 const triggerEarthquakeAlerts = async (earthquake) => {
   try {
-    // Check if earthquake is significant enough
+    // Validate earthquake has required data
     if (!isSignificantEarthquake(earthquake)) {
-      console.log(`Earthquake magnitude ${earthquake.metadata?.magnitude} below threshold, skipping alerts`);
+      console.log(`Earthquake missing required data, skipping alerts`);
       return {
         success: true,
         alertsCreated: 0,
-        reason: 'Earthquake below minimum magnitude threshold'
+        reason: 'Earthquake missing required data (coordinates or magnitude)'
       };
     }
 

@@ -24,7 +24,7 @@ const formatEarthquakeSMS = (alertData) => {
     userProvince
   } = alertData;
 
-  return `🌍 EARTHQUAKE ALERT: Magnitude ${magnitude} earthquake detected ${distance}km from ${userProvince}. Location: ${location}. Take cover immediately. Stay safe! - MataBayan`;
+  return `MataBayan Alert: M${magnitude} earthquake ${distance}km from ${userProvince}. Location: ${location}. Take cover! Stay safe.`;
 };
 
 /**
