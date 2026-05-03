@@ -22,7 +22,6 @@ const SignUp = () => {
     phoneNumber: '',
     notificationPreferences: {
       smsEnabled: false,
-      emailEnabled: true,
       inAppEnabled: true
     },
     alertTypes: { typhoon: true, earthquake: true, volcano: true, flood: true }
@@ -282,16 +281,7 @@ const SignUp = () => {
                           onChange={() => handleNotificationChange('smsEnabled')}
                           className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                         />
-                        <span className="ml-2.5 text-sm text-gray-700">SMS Notifications</span>
-                      </label>
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.notificationPreferences.emailEnabled}
-                          onChange={() => handleNotificationChange('emailEnabled')}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="ml-2.5 text-sm text-gray-700">Email Notifications</span>
+                        <span className="ml-2.5 text-sm text-gray-700">SMS Notifications (Primary)</span>
                       </label>
                       <label className="flex items-center cursor-pointer">
                         <input
@@ -302,6 +292,7 @@ const SignUp = () => {
                         />
                         <span className="ml-2.5 text-sm text-gray-700">In-App Notifications</span>
                       </label>
+
                     </div>
                   </div>
 

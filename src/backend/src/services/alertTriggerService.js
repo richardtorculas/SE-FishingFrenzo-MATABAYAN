@@ -8,6 +8,7 @@
 
 const Alert = require('../models/Alert');
 const { processEarthquakeAlerts, isSignificantEarthquake } = require('./earthquakeAlertService');
+const { sendBulkNotifications } = require('./notificationService');
 
 /**
  * Trigger alerts for an earthquake
@@ -67,8 +68,6 @@ const triggerEarthquakeAlerts = async (earthquake) => {
           severity: userAlert.severity
         });
 
-        // TODO: Trigger actual notifications (SMS, Email, In-app)
-        // This will be implemented in Batch 4
         console.log(`Alert created for user ${userAlert.userId}: ${alert._id}`);
 
       } catch (error) {
@@ -80,10 +79,15 @@ const triggerEarthquakeAlerts = async (earthquake) => {
       }
     }
 
+    // Send notifications to all users
+    console.log(`Sending notifications to ${usersToAlert.length} users...`);
+    const notificationResults = await sendBulkNotifications(usersToAlert);
+
     return {
       success: true,
       alertsCreated: alertsCreated.length,
       alertsFailed: alertsFailed.length,
+      notifications: notificationResults,
       details: {
         created: alertsCreated,
         failed: alertsFailed

@@ -69,9 +69,9 @@ const userSchema = new mongoose.Schema({
   },
 
   // ========== NOTIFICATION PREFERENCES ==========
+  // SMS is primary, In-app is always on, Email is fallback
   notificationPreferences: {
     smsEnabled: { type: Boolean, default: false },
-    emailEnabled: { type: Boolean, default: true },
     inAppEnabled: { type: Boolean, default: true }
   },
 

@@ -22,7 +22,6 @@ const Profile = () => {
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [notificationPreferences, setNotificationPreferences] = useState(user?.notificationPreferences || {
     smsEnabled: false,
-    emailEnabled: true,
     inAppEnabled: true
   });
   const [saving, setSaving] = useState(false);
@@ -86,7 +85,6 @@ const Profile = () => {
     setPhoneNumber(user?.phoneNumber || '');
     setNotificationPreferences(user?.notificationPreferences || {
       smsEnabled: false,
-      emailEnabled: true,
       inAppEnabled: true
     });
     setError(null);
@@ -204,17 +202,12 @@ const Profile = () => {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-subtle">Email Notifications</span>
-                    <span className={`font-medium ${user?.notificationPreferences?.emailEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
-                      {user?.notificationPreferences?.emailEnabled ? '✓ Enabled' : 'Disabled'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
                     <span className="text-subtle">In-App Notifications</span>
                     <span className={`font-medium ${user?.notificationPreferences?.inAppEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
                       {user?.notificationPreferences?.inAppEnabled ? '✓ Enabled' : 'Disabled'}
                     </span>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -242,16 +235,7 @@ const Profile = () => {
                       onChange={() => handleNotificationChange('smsEnabled')}
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
-                    <span className="ml-2.5 text-sm text-gray-700">SMS Notifications</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notificationPreferences.emailEnabled}
-                      onChange={() => handleNotificationChange('emailEnabled')}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="ml-2.5 text-sm text-gray-700">Email Notifications</span>
+                    <span className="ml-2.5 text-sm text-gray-700">SMS Notifications (Primary)</span>
                   </label>
                   <label className="flex items-center cursor-pointer">
                     <input
@@ -262,6 +246,9 @@ const Profile = () => {
                     />
                     <span className="ml-2.5 text-sm text-gray-700">In-App Notifications</span>
                   </label>
+                  <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+                    📧 Email is automatically used as a fallback if SMS delivery fails
+                  </p>
                 </div>
               </div>
             </div>
