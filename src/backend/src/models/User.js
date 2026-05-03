@@ -30,6 +30,12 @@ const userSchema = new mongoose.Schema({
     lowercase: true,                           // Store in lowercase
     match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
   },
+
+  phoneNumber: {
+    type: String,
+    match: [/^\+63\d{9,10}$/, 'Please provide a valid Philippine phone number (e.g., +639123456789)'],
+    default: null
+  },
   
   password: {
     type: String,
@@ -60,6 +66,13 @@ const userSchema = new mongoose.Schema({
       volcano: { type: Boolean, default: true },
       flood: { type: Boolean, default: true }
     }
+  },
+
+  // ========== NOTIFICATION PREFERENCES ==========
+  notificationPreferences: {
+    smsEnabled: { type: Boolean, default: false },
+    emailEnabled: { type: Boolean, default: true },
+    inAppEnabled: { type: Boolean, default: true }
   },
 
   // ========== METADATA ==========

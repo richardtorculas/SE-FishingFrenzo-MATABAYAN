@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, MapPin, AlertCircle, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Mail, Lock, User, MapPin, AlertCircle, CheckCircle2, ChevronRight, ChevronLeft, Phone, Bell } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { validateEmail, validatePassword } from '../../utils/validation';
@@ -19,6 +19,12 @@ const SignUp = () => {
     province: '',
     cityMunicipality: '',
     language: 'en',
+    phoneNumber: '',
+    notificationPreferences: {
+      smsEnabled: false,
+      emailEnabled: true,
+      inAppEnabled: true
+    },
     alertTypes: { typhoon: true, earthquake: true, volcano: true, flood: true }
   });
   const [errors, setErrors] = useState({});
@@ -44,23 +50,37 @@ const SignUp = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => { if (validateStep1()) setStep(2); };
+  const validateStep3 = () => {
+    const newErrors = {};
+    if (formData.phoneNumber && !/^\+63\d{9,10}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = 'Invalid phone format (e.g., +639123456789)';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (step === 1 && validateStep1()) setStep(2);
+    else if (step === 2 && validateStep2()) setStep(3);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateStep2()) return;
+    if (!validateStep3()) return;
     setLoading(true);
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/signup`, {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        phoneNumber: formData.phoneNumber || null,
         preferences: {
           province: formData.province,
           cityMunicipality: formData.cityMunicipality,
           language: formData.language,
           alertTypes: formData.alertTypes
-        }
+        },
+        notificationPreferences: formData.notificationPreferences
       }, { withCredentials: true });
       login(response.data.data.user);
       navigate('/dashboard');
@@ -75,6 +95,16 @@ const SignUp = () => {
     if (passwordStrength.score < 2) return 'bg-red-400';
     if (passwordStrength.score < 4) return 'bg-amber-400';
     return 'bg-emerald-400';
+  };
+
+  const handleNotificationChange = (channel) => {
+    setFormData(prev => ({
+      ...prev,
+      notificationPreferences: {
+        ...prev.notificationPreferences,
+        [channel]: !prev.notificationPreferences[channel]
+      }
+    }));
   };
 
   const FieldError = ({ msg }) => msg
@@ -104,18 +134,18 @@ const SignUp = () => {
           <p className="text-sm text-subtle mb-6">Fill in your details to create an account</p>
 
           {/* Step indicator */}
-          <div className="flex items-center gap-3 mb-7">
-            {[1, 2].map((s) => (
+          <div className="flex items-center gap-2 mb-7">
+            {[1, 2, 3].map((s) => (
               <React.Fragment key={s}>
                 <div className="flex items-center gap-2">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                     step >= s ? 'bg-ink text-white' : 'bg-gray-100 text-gray-400'
                   }`}>{s}</div>
-                  <span className={`text-sm font-medium transition-all ${step >= s ? 'text-ink' : 'text-gray-400'}`}>
-                    {s === 1 ? 'Account' : 'Location'}
+                  <span className={`text-xs font-medium transition-all hidden sm:inline ${step >= s ? 'text-ink' : 'text-gray-400'}`}>
+                    {s === 1 ? 'Account' : s === 2 ? 'Location' : 'Notifications'}
                   </span>
                 </div>
-                {s < 2 && <div className={`flex-1 h-px transition-all ${step >= 2 ? 'bg-ink' : 'bg-gray-200'}`} />}
+                {s < 3 && <div className={`flex-1 h-px transition-all ${step >= s + 1 ? 'bg-ink' : 'bg-gray-200'}`} />}
               </React.Fragment>
             ))}
           </div>
@@ -180,7 +210,7 @@ const SignUp = () => {
 
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Province</label>
                     <div className="relative">
@@ -217,6 +247,64 @@ const SignUp = () => {
                     </div>
                   </div>
 
+                  <div className="flex gap-3 mt-1">
+                    <button type="button" onClick={() => setStep(1)} className="btn-secondary flex-1 flex items-center justify-center gap-2">
+                      <ChevronLeft size={16} /> Back
+                    </button>
+                    <button type="button" onClick={handleNext} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                      Continue <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div key="step3" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Phone Number (Optional)</label>
+                    <div className="relative">
+                      <Phone className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
+                      <input type="tel" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} className="input-field pl-10" placeholder="+639123456789" />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Format: +639XXXXXXXXX</p>
+                    <FieldError msg={errors.phoneNumber} />
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-4">
+                    <label className="block text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Notification Channels</label>
+                    <div className="space-y-3">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.notificationPreferences.smsEnabled}
+                          onChange={() => handleNotificationChange('smsEnabled')}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="ml-2.5 text-sm text-gray-700">SMS Notifications</span>
+                      </label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.notificationPreferences.emailEnabled}
+                          onChange={() => handleNotificationChange('emailEnabled')}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="ml-2.5 text-sm text-gray-700">Email Notifications</span>
+                      </label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.notificationPreferences.inAppEnabled}
+                          onChange={() => handleNotificationChange('inAppEnabled')}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="ml-2.5 text-sm text-gray-700">In-App Notifications</span>
+                      </label>
+                    </div>
+                  </div>
+
                   {errors.submit && (
                     <div className="flex items-center gap-2 text-red-700 bg-red-50 border border-red-100 p-3 rounded-xl text-sm">
                       <AlertCircle size={15} className="shrink-0" />
@@ -225,7 +313,7 @@ const SignUp = () => {
                   )}
 
                   <div className="flex gap-3 mt-1">
-                    <button type="button" onClick={() => setStep(1)} className="btn-secondary flex-1 flex items-center justify-center gap-2">
+                    <button type="button" onClick={() => setStep(2)} className="btn-secondary flex-1 flex items-center justify-center gap-2">
                       <ChevronLeft size={16} /> Back
                     </button>
                     <button type="submit" disabled={loading} className="btn-primary flex-1">

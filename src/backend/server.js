@@ -28,6 +28,7 @@ const connectDB = require('./src/config/database');
 // Route imports
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
+const userPreferencesRoutes = require('./src/routes/userPreferencesRoutes');
 const earthquakeRoutes = require('./src/routes/earthquakeRoutes');
 const typhoonRoutes = require('./src/routes/typhoonRoutes');
 const weatherRoutes = require('./src/routes/weatherRoutes');
@@ -94,6 +95,14 @@ app.use('/api/auth', authRoutes);
  * Endpoints: / (get all users)
  */
 app.use('/api/users', userRoutes);
+
+/**
+ * User Preferences Routes
+ * Base: /api/user
+ * Endpoints: /preferences (get/update user preferences)
+ */
+app.use('/api/user', userPreferencesRoutes);
+
 app.use('/api/earthquakes', earthquakeRoutes);
 app.use('/api/typhoons', typhoonRoutes);
 app.use('/api/weather', weatherRoutes);
