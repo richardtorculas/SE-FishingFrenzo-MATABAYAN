@@ -126,7 +126,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <p className="text-xs text-subtle">
-                        {new Date(alert.createdAt).toLocaleString()}
+                        Occurred: {new Date(alert.earthquakeTimestamp).toLocaleString()}
                       </p>
                     </div>
                     <div className="flex gap-2 ml-4">
@@ -153,8 +153,8 @@ const Dashboard = () => {
             </div>
           ) : (
             <p className="text-sm text-subtle">
-              {user?.preferences?.province
-                ? `No active alerts for ${user.preferences.province} at this time.`
+              {user?.province
+                ? `No active alerts for ${user.province} at this time.`
                 : 'Set your location to see alerts for your area.'}
             </p>
           )}
@@ -170,7 +170,7 @@ const Dashboard = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Date & Time</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Earthquake Time</th>
                     <th className="text-left py-3 px-3 font-semibold text-gray-700">Location</th>
                     <th className="text-center py-3 px-3 font-semibold text-gray-700">Magnitude</th>
                     <th className="text-center py-3 px-3 font-semibold text-gray-700">Distance</th>
@@ -182,7 +182,7 @@ const Dashboard = () => {
                   {alerts.map((alert) => (
                     <tr key={alert._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-3 text-xs text-subtle">
-                        {new Date(alert.createdAt).toLocaleString()}
+                        {new Date(alert.earthquakeTimestamp).toLocaleString()}
                       </td>
                       <td className="py-3 px-3 text-sm text-gray-700 truncate">
                         {alert.location}
@@ -214,13 +214,13 @@ const Dashboard = () => {
             <p className="text-sm text-subtle">
               No alerts received yet. Alerts will appear here when earthquakes occur near your location.
             </p>
-          )}}
+          )}
         </div>
 
         {/* Quick Links */}
         <div className="grid md:grid-cols-3 gap-4">
           {[
-            { to: '/weather',     icon: Cloud,    label: 'Daily Weather',     sub: user?.preferences?.province || 'Your area' },
+            { to: '/weather',     icon: Cloud,    label: 'Daily Weather',     sub: user?.province || 'Your area' },
             { to: '/earthquakes', icon: Activity, label: 'Earthquake Monitor', sub: 'Latest PHIVOLCS data' },
             { to: '/typhoons',    icon: Wind,     label: 'Typhoon Monitor',    sub: 'Active cyclones — PAR' },
           ].map(({ to, icon: Icon, label, sub }) => (

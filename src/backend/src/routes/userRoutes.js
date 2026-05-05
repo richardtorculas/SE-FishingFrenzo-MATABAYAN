@@ -22,8 +22,8 @@ router.patch('/preferences', protect, async (req, res) => {
     const { province, cityMunicipality, alertTypes, notificationPreferences, phoneNumber } = req.body;
 
     const updateData = {};
-    if (province) updateData['preferences.province'] = province;
-    if (cityMunicipality) updateData['preferences.cityMunicipality'] = cityMunicipality;
+    if (province) updateData['province'] = province;
+    if (cityMunicipality) updateData['cityMunicipality'] = cityMunicipality;
     if (alertTypes) updateData['preferences.alertTypes'] = alertTypes;
     if (notificationPreferences) updateData['notificationPreferences'] = notificationPreferences;
     if (phoneNumber) updateData['phoneNumber'] = phoneNumber;

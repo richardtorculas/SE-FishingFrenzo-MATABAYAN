@@ -13,8 +13,7 @@ const earthquakeAlertSchema = new mongoose.Schema(
   {
     // ========== REFERENCES ==========
     earthquakeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Earthquake',
+      type: String,
       required: true,
       index: true
     },
@@ -40,8 +39,13 @@ const earthquakeAlertSchema = new mongoose.Schema(
     },
     severity: {
       type: String,
-      enum: ['Critical', 'High', 'Moderate', 'Low', 'Minor'],
+      enum: ['critical', 'high', 'medium', 'low', 'info'],
       required: true
+    },
+    earthquakeTimestamp: {
+      type: Date,
+      required: true,
+      description: 'Time when the earthquake occurred'
     },
 
     // ========== DISTANCE & PROXIMITY ==========
@@ -100,7 +104,7 @@ const earthquakeAlertSchema = new mongoose.Schema(
     },
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       index: true
     }
   },

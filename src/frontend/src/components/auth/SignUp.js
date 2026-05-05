@@ -72,10 +72,10 @@ const SignUp = () => {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        province: formData.province,
+        cityMunicipality: formData.cityMunicipality,
         phoneNumber: formData.phoneNumber || null,
         preferences: {
-          province: formData.province,
-          cityMunicipality: formData.cityMunicipality,
           language: formData.language,
           alertTypes: formData.alertTypes
         },
@@ -292,7 +292,6 @@ const SignUp = () => {
                         />
                         <span className="ml-2.5 text-sm text-gray-700">In-App Notifications</span>
                       </label>
-
                     </div>
                   </div>
 

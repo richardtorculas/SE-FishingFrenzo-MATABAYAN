@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const EarthquakeAlert = require('../models/EarthquakeAlert');
-const { isUserWithinAlertRadius, getAlertRadius } = require('./distanceCalculator');
+const { isUserWithinAlertRadius } = require('./distanceCalculator');
 
 // Determine severity level based on magnitude
 const getSeverity = (magnitude) => {
@@ -14,13 +14,13 @@ const getSeverity = (magnitude) => {
 // Process earthquake and create alerts for eligible users
 const triggerEarthquakeAlerts = async (earthquake) => {
   try {
-    // Use phivolcsId as the unique identifier (not MongoDB _id which changes on reload)
     const earthquakeId = earthquake.metadata?.phivolcsId || earthquake._id.toString();
     const magnitude = earthquake.metadata?.magnitude;
     const depth = earthquake.metadata?.depth;
     const latitude = earthquake.metadata?.latitude;
     const longitude = earthquake.metadata?.longitude;
     const location = earthquake.location;
+    const earthquakeTimestamp = earthquake.timestamp;
 
     if (!magnitude || !depth || !latitude || !longitude) {
       console.log(`Skipping earthquake: missing required metadata`);
@@ -32,20 +32,8 @@ const triggerEarthquakeAlerts = async (earthquake) => {
       'preferences.alertTypes.earthquake': true,
     });
 
-    console.log(`\n=== EARTHQUAKE ALERT TRIGGER ===`);
-    console.log(`Processing earthquake ${earthquakeId}: ${location}`);
-    console.log(`Magnitude: ${magnitude}, Depth: ${depth}km`);
-    console.log(`Epicenter: ${latitude}, ${longitude}`);
+    console.log(`\n=== Processing earthquake ${earthquakeId}: ${location} ===`);
     console.log(`Found ${users.length} users with earthquake alerts enabled`);
-    
-    // Debug: Log first few users
-    if (users.length > 0) {
-      console.log(`\nFirst user details:`);
-      console.log(`  ID: ${users[0]._id}`);
-      console.log(`  Province: ${users[0].preferences?.province}`);
-      console.log(`  Alert Types: ${JSON.stringify(users[0].preferences?.alertTypes)}`);
-      console.log(`  Notification Prefs: ${JSON.stringify(users[0].notificationPreferences)}`);
-    }
 
     if (users.length === 0) return { created: 0, skipped: 0 };
 
@@ -54,9 +42,8 @@ const triggerEarthquakeAlerts = async (earthquake) => {
 
     for (const user of users) {
       try {
-        // Check if user has province set
         if (!user.province) {
-          console.log(`Skipping user ${user._id}: no province set`);
+          console.log(`  ✗ User ${user._id}: no province set`);
           skipped++;
           continue;
         }
@@ -74,7 +61,7 @@ const triggerEarthquakeAlerts = async (earthquake) => {
 
         // Check if user is within alert radius
         if (!isUserWithinAlertRadius(user.province, latitude, longitude, magnitude)) {
-          console.log(`User ${user._id} (${user.province}) outside alert radius`);
+          console.log(`  ✗ User ${user._id} (${user.province}) outside 100km radius`);
           skipped++;
           continue;
         }
@@ -98,6 +85,7 @@ const triggerEarthquakeAlerts = async (earthquake) => {
           depth,
           location,
           severity: getSeverity(magnitude),
+          earthquakeTimestamp,
           distance: Math.round(distance * 10) / 10,
           userProvince: user.province,
           notificationSent: false,
@@ -106,14 +94,14 @@ const triggerEarthquakeAlerts = async (earthquake) => {
         });
 
         await alert.save();
-        console.log(`✓ Alert created for user ${user._id} (${user.province}): ${distance.toFixed(1)}km away`);
+        console.log(`  ✓ Alert created for ${user._id} (${user.province}): ${distance.toFixed(1)}km`);
         created++;
       } catch (error) {
-        console.error(`Error creating alert for user ${user._id}:`, error.message);
+        console.error(`  ✗ Error for user ${user._id}:`, error.message);
       }
     }
 
-    console.log(`Earthquake ${earthquakeId} processing complete: ${created} created, ${skipped} skipped`);
+    console.log(`Result: ${created} created, ${skipped} skipped\n`);
     return { created, skipped };
   } catch (error) {
     console.error('Error in triggerEarthquakeAlerts:', error);

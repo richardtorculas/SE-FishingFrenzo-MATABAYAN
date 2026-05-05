@@ -18,8 +18,8 @@ const Profile = () => {
 
   // Location card state
   const [editingLocation, setEditingLocation] = useState(false);
-  const [province, setProvince] = useState(user?.preferences?.province || '');
-  const [city, setCity] = useState(user?.preferences?.cityMunicipality || '');
+  const [province, setProvince] = useState(user?.province || '');
+  const [city, setCity] = useState(user?.cityMunicipality || '');
   const [savingLocation, setSavingLocation] = useState(false);
   const [locationError, setLocationError] = useState(null);
   const [locationSuccess, setLocationSuccess] = useState(false);
@@ -40,8 +40,8 @@ const Profile = () => {
   // Sync state with user context
   useEffect(() => {
     if (user) {
-      setProvince(user?.preferences?.province || '');
-      setCity(user?.preferences?.cityMunicipality || '');
+      setProvince(user?.province || '');
+      setCity(user?.cityMunicipality || '');
       setPhoneNumber(user?.phoneNumber || '');
       setNotificationPreferences(user?.notificationPreferences || {
         smsEnabled: false,
@@ -88,8 +88,8 @@ const Profile = () => {
   };
 
   const handleCancelLocation = () => {
-    setProvince(user?.preferences?.province || '');
-    setCity(user?.preferences?.cityMunicipality || '');
+    setProvince(user?.province || '');
+    setCity(user?.cityMunicipality || '');
     setLocationError(null);
     setEditingLocation(false);
   };
@@ -169,11 +169,11 @@ const Profile = () => {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-subtle">Province</span>
-                  <span className="font-medium text-ink">{user?.preferences?.province || '—'}</span>
+                  <span className="font-medium text-ink">{user?.province || '—'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-subtle">City / Municipality</span>
-                  <span className="font-medium text-ink">{user?.preferences?.cityMunicipality || '—'}</span>
+                  <span className="font-medium text-ink">{user?.cityMunicipality || '—'}</span>
                 </div>
                 {locationSuccess && (
                   <p className="text-emerald-600 text-xs mt-2 font-medium pt-2 border-t border-gray-100">
