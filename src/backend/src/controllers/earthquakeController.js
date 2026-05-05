@@ -9,6 +9,8 @@
 
 const Earthquake = require('../models/Earthquake');
 const { fetchEarthquakeData } = require('../services/phivolcsService');
+const { triggerEarthquakeAlerts } = require('../services/earthquakeAlertTrigger');
+const { processAlertNotifications } = require('../services/notificationService');
 
 const getEarthquakes = async (req, res) => {
   try {
@@ -73,10 +75,25 @@ const updateEarthquakeData = async (req, res) => {
     await Earthquake.deleteMany({});
     const savedEarthquakes = await Earthquake.insertMany(earthquakeData);
 
+    // Trigger alerts for new earthquakes
+    let alertStats = { created: 0, skipped: 0 };
+    let notificationStats = { processed: 0, successful: 0, failed: 0 };
+
+    for (const earthquake of savedEarthquakes) {
+      const stats = await triggerEarthquakeAlerts(earthquake);
+      alertStats.created += stats.created;
+      alertStats.skipped += stats.skipped;
+    }
+
+    // Process notifications for all pending alerts
+    notificationStats = await processAlertNotifications();
+
     res.json({
       status: 'success',
       message: `PHIVOLCS data updated — ${savedEarthquakes.length} latest earthquakes loaded`,
-      count: savedEarthquakes.length
+      count: savedEarthquakes.length,
+      alerts: alertStats,
+      notifications: notificationStats
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -114,72 +131,4 @@ const clearEarthquakes = async (req, res) => {
   }
 };
 
-const addMockEarthquake = async (req, res) => {
-  try {
-    const mockEarthquakes = [
-      {
-        severity: 'High',
-        location: '45 km NE of Batangas City (Batangas)',
-        province: 'Batangas',
-        description: 'Magnitude 5.2 earthquake at depth of 15km. Strong shallow earthquake — Significant damage possible.',
-        source: 'PHIVOLCS',
-        timestamp: new Date(),
-        metadata: {
-          magnitude: 5.2,
-          depth: 15,
-          latitude: 13.7381,
-          longitude: 121.0475,
-          threatLevel: 'High',
-          threatSeverity: 4,
-          phivolcsId: 'mock-001'
-        }
-      },
-      {
-        severity: 'Moderate',
-        location: '32 km S 45° W of Quezon City (Metro Manila)',
-        province: 'Metro Manila',
-        description: 'Magnitude 4.8 earthquake at depth of 22km. Moderate earthquake — Minor damage possible. Stay alert.',
-        source: 'PHIVOLCS',
-        timestamp: new Date(Date.now() - 3600000),
-        metadata: {
-          magnitude: 4.8,
-          depth: 22,
-          latitude: 14.5994,
-          longitude: 121.0347,
-          threatLevel: 'Moderate',
-          threatSeverity: 3,
-          phivolcsId: 'mock-002'
-        }
-      },
-      {
-        severity: 'Low',
-        location: '28 km E of Cebu City (Cebu)',
-        province: 'Cebu',
-        description: 'Magnitude 4.1 earthquake at depth of 18km. Light earthquake — Generally felt. Minimal damage expected.',
-        source: 'PHIVOLCS',
-        timestamp: new Date(Date.now() - 7200000),
-        metadata: {
-          magnitude: 4.1,
-          depth: 18,
-          latitude: 10.3157,
-          longitude: 123.8854,
-          threatLevel: 'Low',
-          threatSeverity: 2,
-          phivolcsId: 'mock-003'
-        }
-      }
-    ];
-
-    await Earthquake.insertMany(mockEarthquakes);
-    res.json({
-      status: 'success',
-      message: `${mockEarthquakes.length} mock earthquakes added for testing`,
-      count: mockEarthquakes.length,
-      data: mockEarthquakes
-    });
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
-  }
-};
-
-module.exports = { getEarthquakes, getEarthquakeById, updateEarthquakeData, getEarthquakeStats, clearEarthquakes, addMockEarthquake };
+module.exports = { getEarthquakes, getEarthquakeById, updateEarthquakeData, getEarthquakeStats, clearEarthquakes };

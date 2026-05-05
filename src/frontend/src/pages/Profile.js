@@ -106,8 +106,8 @@ const Profile = () => {
     setSavingContact(true);
     setContactError(null);
     try {
-      const res = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/user/preferences`,
+      const res = await axios.patch(
+        `${process.env.REACT_APP_API_URL}/api/users/preferences`,
         {
           phoneNumber,
           notificationPreferences

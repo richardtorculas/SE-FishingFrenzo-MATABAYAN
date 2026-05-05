@@ -17,6 +17,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
     fetchAlerts();
@@ -39,6 +40,38 @@ const Dashboard = () => {
     }
   };
 
+  const markAsRead = async (alertId) => {
+    try {
+      setActionLoading(alertId);
+      await axios.patch(
+        `${process.env.REACT_APP_API_URL}/api/alerts/${alertId}/read`,
+        {},
+        { withCredentials: true }
+      );
+      setAlerts(alerts.map(a => a._id === alertId ? { ...a, read: true, readAt: new Date() } : a));
+    } catch (error) {
+      console.error('Error marking alert as read:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const dismissAlert = async (alertId) => {
+    try {
+      setActionLoading(alertId);
+      await axios.patch(
+        `${process.env.REACT_APP_API_URL}/api/alerts/${alertId}/dismiss`,
+        {},
+        { withCredentials: true }
+      );
+      setAlerts(alerts.filter(a => a._id !== alertId));
+    } catch (error) {
+      console.error('Error dismissing alert:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-muted">
       <div className="container mx-auto px-6 py-10 max-w-5xl">
@@ -52,19 +85,27 @@ const Dashboard = () => {
         {/* Active Alerts */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6 mb-4">
           <CardHeader icon={Bell} title="Active Alerts" />
-          {loading ? (
+        {loading ? (
             <p className="text-sm text-subtle">Loading alerts...</p>
-          ) : alerts.length > 0 ? (
+          ) : alerts.filter(a => !a.dismissed).length > 0 ? (
             <div className="space-y-3">
-              {alerts.map((alert) => (
-                <div key={alert._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+              {alerts.filter(a => !a.dismissed).map((alert) => (
+                <div key={alert._id} className={`border rounded-lg p-4 transition-colors ${
+                  alert.read ? 'border-gray-200 bg-gray-50' : 'border-red-200 bg-red-50'
+                }`}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-sm text-ink">Earthquake Alert</h3>
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-800">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          alert.severity === 'critical' ? 'bg-red-100 text-red-800' :
+                          alert.severity === 'high' ? 'bg-orange-100 text-orange-800' :
+                          alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-blue-100 text-blue-800'
+                        }`}>
                           {alert.severity?.toUpperCase() || 'ALERT'}
                         </span>
+                        {alert.smsSent && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">SMS Sent</span>}
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-xs mb-2">
                         <div>
@@ -85,8 +126,26 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <p className="text-xs text-subtle">
-                        {new Date(alert.sentAt).toLocaleString()}
+                        {new Date(alert.createdAt).toLocaleString()}
                       </p>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      {!alert.read && (
+                        <button
+                          onClick={() => markAsRead(alert._id)}
+                          disabled={actionLoading === alert._id}
+                          className="text-xs px-3 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-50"
+                        >
+                          {actionLoading === alert._id ? 'Marking...' : 'Mark Read'}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => dismissAlert(alert._id)}
+                        disabled={actionLoading === alert._id}
+                        className="text-xs px-3 py-1 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:opacity-50"
+                      >
+                        {actionLoading === alert._id ? 'Dismissing...' : 'Dismiss'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -116,13 +175,14 @@ const Dashboard = () => {
                     <th className="text-center py-3 px-3 font-semibold text-gray-700">Magnitude</th>
                     <th className="text-center py-3 px-3 font-semibold text-gray-700">Distance</th>
                     <th className="text-center py-3 px-3 font-semibold text-gray-700">Depth</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {alerts.map((alert) => (
                     <tr key={alert._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-3 text-xs text-subtle">
-                        {new Date(alert.sentAt).toLocaleString()}
+                        {new Date(alert.createdAt).toLocaleString()}
                       </td>
                       <td className="py-3 px-3 text-sm text-gray-700 truncate">
                         {alert.location}
@@ -136,6 +196,15 @@ const Dashboard = () => {
                       <td className="py-3 px-3 text-center text-gray-700">
                         {alert.depth} km
                       </td>
+                      <td className="py-3 px-3 text-center">
+                        <span className={`text-xs font-medium px-2 py-1 rounded ${
+                          alert.dismissed ? 'bg-gray-100 text-gray-700' :
+                          alert.read ? 'bg-blue-100 text-blue-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {alert.dismissed ? 'Dismissed' : alert.read ? 'Read' : 'New'}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -145,7 +214,7 @@ const Dashboard = () => {
             <p className="text-sm text-subtle">
               No alerts received yet. Alerts will appear here when earthquakes occur near your location.
             </p>
-          )}
+          )}}
         </div>
 
         {/* Quick Links */}
