@@ -9,7 +9,6 @@
 
 const Earthquake = require('../models/Earthquake');
 const { fetchEarthquakeData } = require('../services/phivolcsService');
-const { triggerEarthquakeAlerts } = require('../services/alertTriggerService');
 
 const getEarthquakes = async (req, res) => {
   try {
@@ -74,23 +73,10 @@ const updateEarthquakeData = async (req, res) => {
     await Earthquake.deleteMany({});
     const savedEarthquakes = await Earthquake.insertMany(earthquakeData);
 
-    // Trigger alerts for new earthquakes (with their MongoDB IDs)
-    const alertResults = [];
-    for (const earthquake of savedEarthquakes) {
-      const result = await triggerEarthquakeAlerts(earthquake);
-      alertResults.push({
-        earthquakeId: earthquake._id,
-        location: earthquake.location,
-        magnitude: earthquake.metadata?.magnitude,
-        alertsCreated: result.alertsCreated
-      });
-    }
-
     res.json({
       status: 'success',
       message: `PHIVOLCS data updated — ${savedEarthquakes.length} latest earthquakes loaded`,
-      count: savedEarthquakes.length,
-      alerts: alertResults
+      count: savedEarthquakes.length
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
