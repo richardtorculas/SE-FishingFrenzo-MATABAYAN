@@ -2,39 +2,43 @@ const axios = require('axios');
 const EarthquakeAlert = require('../models/EarthquakeAlert');
 const User = require('../models/User');
 
-const SMS_API_URL = 'https://smsapiph.onrender.com/api/v1/send/sms';
+const SMS_API_BASE = 'https://api.textbee.dev/api/v1/gateway/devices';
 const SMS_API_KEY = process.env.SMS_API_KEY || 'your-api-key';
+const DEVICE_ID = process.env.TEXTBEE_DEVICE_ID || 'default-device';
 
 // Format earthquake alert message
 const formatAlertMessage = (alert) => {
-  return `🚨 EARTHQUAKE ALERT: Magnitude ${alert.magnitude} detected ${Math.round(alert.distance)}km away in ${alert.location}. Depth: ${alert.depth}km. Stay safe!`;
+  return `🚨 MATABAYAN ALERT: Magnitude ${alert.magnitude} detected ${Math.round(alert.distance)}km away in ${alert.location}. Depth: ${alert.depth}km. Stay safe!`;
 };
 
-// Send SMS notification
+// Send SMS notification via TextBee
 const sendSMS = async (phoneNumber, message) => {
   try {
+    const SMS_API_URL = `${SMS_API_BASE}/${DEVICE_ID}/send-sms`;
+    
     const response = await axios.post(
       SMS_API_URL,
       {
-        recipient: phoneNumber,
-        message,
+        recipients: [phoneNumber],
+        message: message,
       },
       {
         headers: {
-          'x-api-key': SMS_API_KEY,
           'Content-Type': 'application/json',
+          'x-api-key': SMS_API_KEY,
         },
         timeout: 10000,
       }
     );
 
+    console.log(`✓ SMS sent to ${phoneNumber}`);
     return {
-      success: response.status === 200,
+      success: response.status === 200 || response.status === 201,
       status: response.data?.status || 'sent',
-      messageId: response.data?.messageId,
+      messageId: response.data?.id || response.data?.messageId,
     };
   } catch (error) {
-    console.error('SMS send error:', error.message);
+    console.error(`✗ SMS send error to ${phoneNumber}:`, error.message);
     return {
       success: false,
       status: 'failed',

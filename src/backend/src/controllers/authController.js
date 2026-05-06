@@ -55,13 +55,22 @@ const createSendToken = (user, statusCode, res) => {
  * SIGNUP - Register new user
  * ========================================
  * POST /api/auth/signup
- * Body: { name, email, password, province, cityMunicipality, preferences }
+ * Body: { name, email, password, province, cityMunicipality, phoneNumber, preferences, notificationPreferences }
  */
 exports.signup = async (req, res) => {
   try {
     console.log('Registration attempt:', req.body.email);
     
-    const { name, email, password, province, cityMunicipality, preferences } = req.body;
+    const { 
+      name, 
+      email, 
+      password, 
+      province, 
+      cityMunicipality, 
+      phoneNumber,
+      preferences,
+      notificationPreferences 
+    } = req.body;
 
     if (!name || !email || !password || !province || !cityMunicipality) {
       return res.status(400).json({
@@ -84,6 +93,7 @@ exports.signup = async (req, res) => {
       password,
       province,
       cityMunicipality,
+      phoneNumber: phoneNumber || null,
       preferences: {
         language: preferences?.language || 'en',
         alertTypes: preferences?.alertTypes || {
@@ -93,9 +103,9 @@ exports.signup = async (req, res) => {
           flood: true
         }
       },
-      notificationPreferences: preferences?.notificationPreferences || {
-        smsEnabled: false,
-        inAppEnabled: true
+      notificationPreferences: {
+        smsEnabled: notificationPreferences?.smsEnabled || false,
+        inAppEnabled: notificationPreferences?.inAppEnabled !== false
       }
     });
 
