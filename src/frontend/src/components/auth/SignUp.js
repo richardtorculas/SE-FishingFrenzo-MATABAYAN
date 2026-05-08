@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, MapPin, AlertCircle, CheckCircle2, ChevronRight, ChevronLeft, Phone, Bell } from 'lucide-react';
+import { Mail, User, MapPin, AlertCircle, CheckCircle2, ChevronRight, ChevronLeft, Phone, Bell } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AuthLayout from './AuthLayout';
+import PasswordInput from '../PasswordInput';
 import { validateEmail, validatePassword } from '../../utils/validation';
 import { provinces, citiesByProvince } from '../../utils/phLocations';
 import axios from 'axios';
@@ -174,33 +175,29 @@ const SignUp = () => {
                     <FieldError msg={errors.email} />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
-                      <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="input-field pl-10" placeholder="••••••••" />
-                    </div>
-                    {formData.password && (
-                      <div className="mt-2">
-                        <div className="flex gap-1 mb-1">
-                          {[...Array(5)].map((_, i) => (
-                            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < passwordStrength.score ? getStrengthColor() : 'bg-gray-100'}`} />
-                          ))}
-                        </div>
-                        {passwordStrength.feedback.length > 0 && <p className="text-xs text-subtle">Need: {passwordStrength.feedback.join(', ')}</p>}
+                  <PasswordInput
+                    label="Password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    error={errors.password}
+                  />
+                  {formData.password && (
+                    <div className="mt-2">
+                      <div className="flex gap-1 mb-1">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < passwordStrength.score ? getStrengthColor() : 'bg-gray-100'}`} />
+                        ))}
                       </div>
-                    )}
-                    <FieldError msg={errors.password} />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Confirm Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-3.5 text-gray-300" size={16} />
-                      <input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className="input-field pl-10" placeholder="••••••••" />
+                      {passwordStrength.feedback.length > 0 && <p className="text-xs text-subtle">Need: {passwordStrength.feedback.join(', ')}</p>}
                     </div>
-                    <FieldError msg={errors.confirmPassword} />
-                  </div>
+                  )}
+
+                  <PasswordInput
+                    label="Confirm Password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    error={errors.confirmPassword}
+                  />
 
                   <button onClick={handleNext} className="btn-primary w-full flex items-center justify-center gap-2 mt-1">
                     Continue <ChevronRight size={16} />
