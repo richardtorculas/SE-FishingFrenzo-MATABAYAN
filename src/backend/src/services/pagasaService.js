@@ -221,6 +221,18 @@ const fetchFromJTWC = async () => {
 
 // ── MAIN EXPORT ───────────────────────────────────────────────────────────────
 const fetchTyphoonData = async () => {
+  // On Vercel serverless, skip scraping and go straight to JTWC to avoid timeout
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🌀 Production: fetching from JTWC...');
+    try {
+      const data = await fetchFromJTWC();
+      console.log(`✅ JTWC: ${data.length} cyclone(s) in PAR`);
+      return data;
+    } catch (err) {
+      console.warn(`⚠️  JTWC unavailable (${err.message})`);
+      return [];
+    }
+  }
   try {
     console.log('🌀 Fetching from PAGASA...');
     const data = await scrapePagasa();
