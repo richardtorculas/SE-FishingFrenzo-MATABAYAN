@@ -9,6 +9,8 @@
 
 const Typhoon = require('../models/Typhoon');
 const { fetchTyphoonData, fetchHistoricalTyphoons } = require('../services/pagasaService');
+const { triggerCycloneAlerts } = require('../services/cycloneAlertTrigger');
+const { processAlertNotifications } = require('../services/cycloneNotificationService');
 
 // GET /api/typhoons
 const getTyphoons = async (req, res) => {
@@ -38,6 +40,8 @@ const updateTyphoonData = async (req, res) => {
     let newCount      = 0;
     let updatedCount  = 0;
     let skippedCount  = 0;
+    let alertStats = { created: 0, skipped: 0 };
+    let notificationStats = { processed: 0, successful: 0, failed: 0 };
 
     for (const cyclone of typhoonData) {
       try {
@@ -54,6 +58,7 @@ const updateTyphoonData = async (req, res) => {
         const sameStorm = await Typhoon.findOne({ name: cyclone.name })
           .sort({ timestamp: -1 });
 
+        let savedCyclone;
         if (sameStorm) {
           // Append current position to existing storm's trajectory
           await Typhoon.findByIdAndUpdate(sameStorm._id, {
@@ -82,12 +87,18 @@ const updateTyphoonData = async (req, res) => {
               stormKey:          cyclone.stormKey
             }
           });
+          savedCyclone = await Typhoon.findById(sameStorm._id);
           updatedCount++;
         } else {
           // Brand new storm — insert
-          await Typhoon.create(cyclone);
+          savedCyclone = await Typhoon.create(cyclone);
           newCount++;
         }
+
+        // Trigger alerts for this cyclone
+        const stats = await triggerCycloneAlerts(savedCyclone);
+        alertStats.created += stats.created;
+        alertStats.skipped += stats.skipped;
       } catch (err) {
         // Handle unique index violation (race condition) gracefully
         if (err.code === 11000) {
@@ -98,12 +109,17 @@ const updateTyphoonData = async (req, res) => {
       }
     }
 
+    // Process notifications for all pending alerts
+    notificationStats = await processAlertNotifications();
+
     res.json({
       status: 'success',
       message: `PAGASA data updated — ${newCount} new, ${updatedCount} updated, ${skippedCount} duplicate(s) skipped`,
       newCount,
       updatedCount,
-      skippedCount
+      skippedCount,
+      alerts: alertStats,
+      notifications: notificationStats
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });

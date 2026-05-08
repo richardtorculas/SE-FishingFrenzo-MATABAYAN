@@ -94,7 +94,7 @@ const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Get alert radius based on magnitude
+// Get alert radius based on magnitude (for earthquakes)
 const getAlertRadius = (magnitude) => {
   return 100; // Fixed 100km radius for all earthquakes
 };
@@ -106,7 +106,7 @@ const getUserCoordinates = (province) => {
   return PHILIPPINES_LOCATIONS[normalized] || null;
 };
 
-// Check if user is within alert radius
+// Check if user is within earthquake alert radius
 const isUserWithinAlertRadius = (userProvince, epicenterLat, epicenterLng, magnitude) => {
   if (!userProvince) return false;
   const userCoords = getUserCoordinates(userProvince);

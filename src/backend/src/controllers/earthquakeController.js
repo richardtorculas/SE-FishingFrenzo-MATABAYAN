@@ -102,22 +102,42 @@ const updateEarthquakeData = async (req, res) => {
 
 const getEarthquakeStats = async (req, res) => {
   try {
-    const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    // Calculate today's date range (midnight to now)
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
-    const [total, last24h, bySeverity, tsunamiCount] = await Promise.all([
+    console.log('📊 Earthquake Stats Query:');
+    console.log(`   Current time: ${now.toISOString()}`);
+    console.log(`   Today start: ${todayStart.toISOString()}`);
+
+    const [total, todayCount, bySeverity, tsunamiCount] = await Promise.all([
       Earthquake.countDocuments(),
-      Earthquake.countDocuments({ timestamp: { $gte: last24Hours } }),
+      Earthquake.countDocuments({ timestamp: { $gte: todayStart } }),
       Earthquake.aggregate([
         { $group: { _id: '$severity', count: { $sum: 1 } } }
       ]),
       Earthquake.countDocuments({ 'metadata.tsunami': true })
     ]);
 
+    console.log(`   Total earthquakes: ${total}`);
+    console.log(`   Recorded today: ${todayCount}`);
+    console.log(`   Tsunami alerts: ${tsunamiCount}`);
+
     res.json({
       status: 'success',
-      data: { total, last24Hours: last24h, bySeverity, tsunamiCount }
+      data: { 
+        total, 
+        recordedToday: todayCount, 
+        bySeverity, 
+        tsunamiCount,
+        queryTime: {
+          now: now.toISOString(),
+          todayStart: todayStart.toISOString()
+        }
+      }
     });
   } catch (error) {
+    console.error('❌ Error in getEarthquakeStats:', error);
     res.status(500).json({ status: 'error', message: error.message });
   }
 };
