@@ -21,6 +21,90 @@ const getRainColor = (pct) => {
   return 'text-emerald-600';
 };
 
+// Get weather card colors based on condition
+const getWeatherCardColors = (condition, weatherCode) => {
+  const conditionLower = condition?.toLowerCase() || '';
+  
+  // Clear sky - bright blue
+  if (conditionLower.includes('clear') || conditionLower.includes('sunny') || weatherCode === 0 || weatherCode === 1) {
+    return {
+      bg: 'bg-gradient-to-br from-blue-400 to-blue-600',
+      text: 'text-white',
+      icon: 'opacity-90'
+    };
+  }
+  
+  // Partly cloudy - light blue with clouds
+  if (conditionLower.includes('partly') || conditionLower.includes('mostly clear') || weatherCode === 2) {
+    return {
+      bg: 'bg-gradient-to-br from-blue-300 to-blue-500',
+      text: 'text-white',
+      icon: 'opacity-85'
+    };
+  }
+  
+  // Cloudy - gray
+  if (conditionLower.includes('cloudy') || conditionLower.includes('overcast') || weatherCode === 3) {
+    return {
+      bg: 'bg-gradient-to-br from-gray-400 to-gray-600',
+      text: 'text-white',
+      icon: 'opacity-80'
+    };
+  }
+  
+  // Foggy/Mist - light gray
+  if (conditionLower.includes('fog') || conditionLower.includes('mist') || weatherCode <= 48) {
+    return {
+      bg: 'bg-gradient-to-br from-gray-300 to-gray-500',
+      text: 'text-white',
+      icon: 'opacity-75'
+    };
+  }
+  
+  // Drizzle - light blue-gray
+  if (conditionLower.includes('drizzle') || weatherCode <= 55) {
+    return {
+      bg: 'bg-gradient-to-br from-blue-400 to-gray-500',
+      text: 'text-white',
+      icon: 'opacity-85'
+    };
+  }
+  
+  // Rain - darker blue
+  if (conditionLower.includes('rain') || weatherCode <= 65) {
+    return {
+      bg: 'bg-gradient-to-br from-blue-600 to-blue-800',
+      text: 'text-white',
+      icon: 'opacity-90'
+    };
+  }
+  
+  // Thunderstorm - dark purple/gray
+  if (conditionLower.includes('thunder') || conditionLower.includes('storm') || weatherCode <= 82) {
+    return {
+      bg: 'bg-gradient-to-br from-purple-700 to-gray-800',
+      text: 'text-white',
+      icon: 'opacity-95'
+    };
+  }
+  
+  // Heavy rain/snow - very dark blue
+  if (conditionLower.includes('heavy') || conditionLower.includes('snow')) {
+    return {
+      bg: 'bg-gradient-to-br from-blue-900 to-gray-900',
+      text: 'text-white',
+      icon: 'opacity-95'
+    };
+  }
+  
+  // Default - dark blue
+  return {
+    bg: 'bg-gradient-to-br from-blue-700 to-blue-900',
+    text: 'text-white',
+    icon: 'opacity-90'
+  };
+};
+
 const StatCard = ({ label, value, icon, color }) => (
   <div className="card flex items-center gap-4">
     <div className={`p-3 rounded-xl ${color}`}>{icon}</div>
@@ -90,6 +174,9 @@ const WeatherDashboard = () => {
     setError(null);
   };
 
+  // Get dynamic colors for weather card
+  const weatherColors = weather ? getWeatherCardColors(weather.condition, weather.weatherCode) : null;
+
   return (
     <div className="min-h-screen bg-muted">
       <div className="container mx-auto px-6 py-10 max-w-4xl">
@@ -153,10 +240,10 @@ const WeatherDashboard = () => {
           </div>
         )}
 
-        {!loading && weather && (
+        {!loading && weather && weatherColors && (
           <>
-            {/* Hero weather card */}
-            <div className="card mb-6 bg-ink text-white border-0">
+            {/* Hero weather card - Dynamic colors based on weather */}
+            <div className={`card mb-6 ${weatherColors.bg} ${weatherColors.text} border-0 shadow-lg`}>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -166,7 +253,7 @@ const WeatherDashboard = () => {
                   <p className="text-6xl font-black tracking-tight">{weather.temperature}°C</p>
                   <p className="text-base font-medium opacity-75 mt-1">{weather.condition}</p>
                 </div>
-                <span className="text-7xl">{getWeatherIcon(weather.weatherCode)}</span>
+                <span className={`text-7xl ${weatherColors.icon}`}>{getWeatherIcon(weather.weatherCode)}</span>
               </div>
               <p className="text-xs opacity-50">
                 As of {new Date(weather.fetchedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}

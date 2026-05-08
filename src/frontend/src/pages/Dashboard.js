@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Bell, MapPin, Globe, Cloud, Pencil, Check, X, Activity, Wind } from 'lucide-react';
-import { provinces, citiesByProvince } from '../utils/phLocations';
+import { Bell, Cloud, Activity, Wind } from 'lucide-react';
 
 const CardHeader = ({ icon: Icon, title }) => (
   <div className="flex items-center gap-3 mb-5">
@@ -15,50 +14,62 @@ const CardHeader = ({ icon: Icon, title }) => (
 );
 
 const Dashboard = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
 
-  const [editing, setEditing] = useState(false);
-  const [province, setProvince] = useState(user?.preferences?.province || '');
-  const [city, setCity] = useState(user?.preferences?.cityMunicipality || '');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  useEffect(() => {
+    fetchAlerts();
+  }, []);
 
-  const availableCities = province ? (citiesByProvince[province] || []).sort() : [];
-
-  const handleProvinceChange = (e) => {
-    setProvince(e.target.value);
-    setCity('');
-    setError(null);
-  };
-
-  const handleSave = async () => {
-    if (!province) return setError('Please select a province.');
-    if (!city) return setError('Please select a city/municipality.');
-    setSaving(true);
-    setError(null);
+  const fetchAlerts = async () => {
     try {
-      const res = await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/auth/location`,
-        { province, cityMunicipality: city },
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/alerts/logs`,
         { withCredentials: true }
       );
-      updateUser(res.data.user);
-      setSuccess(true);
-      setEditing(false);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update location.');
+      
+      if (response.data.data) {
+        setAlerts(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching alerts:', error);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    setProvince(user?.preferences?.province || '');
-    setCity(user?.preferences?.cityMunicipality || '');
-    setError(null);
-    setEditing(false);
+  const markAsRead = async (alertId) => {
+    try {
+      setActionLoading(alertId);
+      await axios.patch(
+        `${process.env.REACT_APP_API_URL}/api/alerts/${alertId}/read`,
+        {},
+        { withCredentials: true }
+      );
+      setAlerts(alerts.map(a => a._id === alertId ? { ...a, read: true, readAt: new Date() } : a));
+    } catch (error) {
+      console.error('Error marking alert as read:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const dismissAlert = async (alertId) => {
+    try {
+      setActionLoading(alertId);
+      await axios.patch(
+        `${process.env.REACT_APP_API_URL}/api/alerts/${alertId}/dismiss`,
+        {},
+        { withCredentials: true }
+      );
+      setAlerts(alerts.filter(a => a._id !== alertId));
+    } catch (error) {
+      console.error('Error dismissing alert:', error);
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   return (
@@ -67,94 +78,149 @@ const Dashboard = () => {
 
         {/* Page header */}
         <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">Dashboard</p>
-          <h1 className="text-2xl font-bold text-ink tracking-tight">Welcome, {user?.name}</h1>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
-
-          {/* Location Card */}
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6">
-            <div className="flex items-center justify-between mb-5">
-              <CardHeader icon={MapPin} title="Your Location" />
-              {!editing && (
-                <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-xs text-subtle hover:text-ink transition-colors -mt-5">
-                  <Pencil size={13} /> Edit
-                </button>
-              )}
-            </div>
-
-            {!editing ? (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-subtle">Province</span>
-                  <span className="font-medium text-ink">{user?.preferences?.province || '—'}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-subtle">City / Municipality</span>
-                  <span className="font-medium text-ink">{user?.preferences?.cityMunicipality || '—'}</span>
-                </div>
-                {success && (
-                  <p className="text-emerald-600 text-xs mt-2 font-medium pt-2 border-t border-gray-100">
-                    Location updated successfully.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Province</label>
-                  <select value={province} onChange={handleProvinceChange} className="input-field">
-                    <option value="">Select province...</option>
-                    {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">City / Municipality</label>
-                  <select value={city} onChange={e => { setCity(e.target.value); setError(null); }} disabled={!province} className="input-field disabled:bg-gray-50 disabled:cursor-not-allowed">
-                    <option value="">Select city/municipality...</option>
-                    {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                {error && <p className="text-red-600 text-xs">{error}</p>}
-                <div className="flex gap-2 pt-1">
-                  <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-1.5 text-xs px-4 py-2">
-                    <Check size={13} /> {saving ? 'Saving...' : 'Save'}
-                  </button>
-                  <button onClick={handleCancel} className="btn-secondary flex items-center gap-1.5 text-xs px-4 py-2">
-                    <X size={13} /> Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Preferences Card */}
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6">
-            <CardHeader icon={Globe} title="Preferences" />
-            <div className="flex justify-between text-sm">
-              <span className="text-subtle">Language</span>
-              <span className="font-medium text-ink">
-                {user?.preferences?.language === 'en' ? 'English' : 'Filipino'}
-              </span>
-            </div>
-          </div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-subtle mb-1">Notifications</p>
+          <h1 className="text-2xl font-bold text-ink tracking-tight">Alerts & Updates</h1>
         </div>
 
         {/* Active Alerts */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6 mb-4">
           <CardHeader icon={Bell} title="Active Alerts" />
-          <p className="text-sm text-subtle">
-            {user?.preferences?.province
-              ? `No active alerts for ${user.preferences.province} at this time.`
-              : 'Set your location to see alerts for your area.'}
-          </p>
+        {loading ? (
+            <p className="text-sm text-subtle">Loading alerts...</p>
+          ) : alerts.filter(a => !a.dismissed).length > 0 ? (
+            <div className="space-y-3">
+              {alerts.filter(a => !a.dismissed).map((alert) => (
+                <div key={alert._id} className={`border rounded-lg p-4 transition-colors ${
+                  alert.read ? 'border-gray-200 bg-gray-50' : 'border-red-200 bg-red-50'
+                }`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-sm text-ink">Earthquake Alert</h3>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          alert.severity === 'critical' ? 'bg-red-100 text-red-800' :
+                          alert.severity === 'high' ? 'bg-orange-100 text-orange-800' :
+                          alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-blue-100 text-blue-800'
+                        }`}>
+                          {alert.severity?.toUpperCase() || 'ALERT'}
+                        </span>
+                        {alert.smsSent && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">SMS Sent</span>}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                        <div>
+                          <span className="text-subtle">Magnitude:</span>
+                          <p className="font-semibold text-ink">{alert.magnitude}</p>
+                        </div>
+                        <div>
+                          <span className="text-subtle">Distance:</span>
+                          <p className="font-semibold text-ink">{alert.distance} km</p>
+                        </div>
+                        <div>
+                          <span className="text-subtle">Depth:</span>
+                          <p className="font-semibold text-ink">{alert.depth} km</p>
+                        </div>
+                        <div>
+                          <span className="text-subtle">Location:</span>
+                          <p className="font-semibold text-ink truncate">{alert.location}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-subtle">
+                        Occurred: {new Date(alert.earthquakeTimestamp).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      {!alert.read && (
+                        <button
+                          onClick={() => markAsRead(alert._id)}
+                          disabled={actionLoading === alert._id}
+                          className="text-xs px-3 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-50"
+                        >
+                          {actionLoading === alert._id ? 'Marking...' : 'Mark Read'}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => dismissAlert(alert._id)}
+                        disabled={actionLoading === alert._id}
+                        className="text-xs px-3 py-1 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:opacity-50"
+                      >
+                        {actionLoading === alert._id ? 'Dismissing...' : 'Dismiss'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-subtle">
+              {user?.province
+                ? `No active alerts for ${user.province} at this time.`
+                : 'Set your location to see alerts for your area.'}
+            </p>
+          )}
+        </div>
+
+        {/* Alert History */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-card p-6 mb-4">
+          <CardHeader icon={Bell} title="Alert History" />
+          {loading ? (
+            <p className="text-sm text-subtle">Loading history...</p>
+          ) : alerts.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Earthquake Time</th>
+                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Location</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Magnitude</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Distance</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Depth</th>
+                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {alerts.map((alert) => (
+                    <tr key={alert._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-3 text-xs text-subtle">
+                        {new Date(alert.earthquakeTimestamp).toLocaleString()}
+                      </td>
+                      <td className="py-3 px-3 text-sm text-gray-700 truncate">
+                        {alert.location}
+                      </td>
+                      <td className="py-3 px-3 text-center font-semibold text-ink">
+                        {alert.magnitude}
+                      </td>
+                      <td className="py-3 px-3 text-center text-gray-700">
+                        {alert.distance} km
+                      </td>
+                      <td className="py-3 px-3 text-center text-gray-700">
+                        {alert.depth} km
+                      </td>
+                      <td className="py-3 px-3 text-center">
+                        <span className={`text-xs font-medium px-2 py-1 rounded ${
+                          alert.dismissed ? 'bg-gray-100 text-gray-700' :
+                          alert.read ? 'bg-blue-100 text-blue-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {alert.dismissed ? 'Dismissed' : alert.read ? 'Read' : 'New'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-subtle">
+              No alerts received yet. Alerts will appear here when earthquakes occur near your location.
+            </p>
+          )}
         </div>
 
         {/* Quick Links */}
         <div className="grid md:grid-cols-3 gap-4">
           {[
-            { to: '/weather',     icon: Cloud,    label: 'Daily Weather',     sub: user?.preferences?.province || 'Your area' },
+            { to: '/weather',     icon: Cloud,    label: 'Daily Weather',     sub: user?.province || 'Your area' },
             { to: '/earthquakes', icon: Activity, label: 'Earthquake Monitor', sub: 'Latest PHIVOLCS data' },
             { to: '/typhoons',    icon: Wind,     label: 'Typhoon Monitor',    sub: 'Active cyclones — PAR' },
           ].map(({ to, icon: Icon, label, sub }) => (

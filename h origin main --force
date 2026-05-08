@@ -1,0 +1,130 @@
+[33m557dcc9[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Merge pull request #64 from richardtorculas/TC-Tropical-Cyclone-Dashboard
+[33mbb39f5c[m[33m ([m[1;31morigin/TC-Tropical-Cyclone-Dashboard[m[33m, [m[1;32mTC-Tropical-Cyclone-Dashboard[m[33m)[m Merge branch 'main' into TC-Tropical-Cyclone-Dashboard
+[33m9f166b2[m ADD-01: Added a tab to display recent tropical cyclones
+[33mb24a108[m fix: hardcode Vercel frontend URL in CORS allowed origins
+[33m7b6e8df[m fix: update CORS to allow Vercel frontend URL
+[33m4f7f3e1[m feat: use WeatherDashboard from Frontend-Revamp with Vercel API URL fix
+[33mc77dd65[m fix: replace hardcoded localhost with REACT_APP_API_URL for Vercel deployment
+[33mcafec77[m Add test_weather_dashboard.py from develop branch
+[33m145e976[m Merge testing into main, keep updated test_typhoon_dashboard.py
+[33m40483f1[m Merge pull request #62 from richardtorculas/main
+[33mcfc112d[m Merge pull request #61 from richardtorculas/improvement/iso-25010-compliance
+[33m9d955e8[m[33m ([m[1;31morigin/improvement/iso-25010-compliance[m[33m, [m[1;32mimprovement/iso-25010-compliance[m[33m)[m DB-05: Add Typhoon Dashboard data references
+[33m8841a0d[m Remove extra seed files from DB-03 commit
+[33mfa0c6df[m Merge branch 'improvement/iso-25010-compliance' of https://github.com/richardtorculas/SE-FishingFrenzo-MATABAYAN into improvement/iso-25010-compliance
+[33m3f99436[m DB-04: Add Earthquake Dashboard data references
+[33m6aa3c85[m DB-03: Add Weather Dashboard data references
+[33m28c6a59[m DB-03: Add Weather Dashboard data references
+[33m88c67a4[m Merge pull request #60 from richardtorculas/improvement/iso-25010-compliance
+[33m2cf7230[m UI-03: Change the card view into table view (recorded earthquake)
+[33m6e41183[m UI-03: finalize design tokens, global styles, and Tailwind config
+[33m011047b[m UI-03: standardize data dashboard pages with shared component patterns
+[33mc45a6ab[m UI-03: standardize dashboard and admin pages with consistent layout and card structure
+[33mbb7a961[m UI-03: standardize auth pages login and signup to consistent card structure
+[33m2697a8d[m UI-03: standardize shared page layout and navbar with active states and mobile menu
+[33m6724c1d[m fix: resolve Selenium TimeoutException in CI automation tests
+[33m7311563[m fix: add root vercel.json to resolve react-scripts not found on Vercel
+[33m3108c56[m fix: increase Selenium timeouts for CI environment and broaden typhoon dashboard assertions
+[33m1ccb6a2[m fix: update cd.yml to deploy backend before frontend
+[33mae8a909[m fix: Update landing page test selector to match actual page text
+[33m2ea6ee4[m fix: add explicit build config for Vercel frontend
+[33m1a68ec0[m fix: pin Node version to 20.x for Vercel
+[33m784c3fb[m test: trigger CI/CD pipeline
+[33m7f1901c[m fix: update for Vercel deployment
+[33me8342e9[m Merge pull request #59 from richardtorculas/Frontend-Revamp
+[33mfec7d8d[m[33m ([m[1;31morigin/Frontend-Revamp[m[33m, [m[1;32mFrontend-Revamp[m[33m)[m Merge branch 'main' into Frontend-Revamp
+[33m9cc1cd0[m feat: redesign frontend UI with  cleaner design, new logo, and improved home page layout.
+[33m6dddd98[m[33m ([m[1;31morigin/Weather-Report[m[33m, [m[1;32mWeather-Report[m[33m)[m Add: Weather Dashboard Documentation
+[33mde4f659[m FEAT-01: Add manual location input form with province and city dropdowns to dashboard
+[33mf4bbcc4[m FEAT-01: Add update User function to AuthContext for live location sync
+[33m4d66f74[m FEAT-01: Add update location endpoint to auth controller and routes
+[33m579f740[m FEAT-04: Fix weather dashboard location auto-detection and city selector
+[33mbde9143[m FEAT-04: Integrate weather dashboard into main dashboard and app routes
+[33ma5a8975[m FEAT-04: Connect weather dashboard to user profile location
+[33m251a732[m FEAT-04: Add WeatherDashboard page with fetch, loading, and error states
+[33mf606b46[m FEAT-04: Add weather controller and route using Open-Meteo API
+[33mf7fc37a[m Merge pull request #46 from richardtorculas/TC-Tropical-Cyclone-Dashboard
+[33mbd480e9[m fix(tests): resolve premature page_source reads caused by React loading state in typhoon dashboard tests
+[33mad99f99[m fix(tests): resolve selenium selector and wait condition failures in typhoon dashboard tests
+[33m0acc148[m Restore deleted automation folder
+[33m0f3a493[m Document risk factors for Project Matabayan
+[33m395f737[m docs: Update System Architecture
+[33m8d0a39e[m Delete docs/architecture/system_architecture.png
+[33m54f32a2[m[33m ([m[1;31morigin/testing[m[33m)[m test: add earthquake dashboard test suite
+[33m8f3ef75[m chore: remove test cases, moved to testing branch
+[33m27f774e[m test: add typhoon dashboard test suite
+[33m855ae30[m docs: Update STRUCTURE.md. Remove unnecessary folder removal update
+[33m087aa3e[m Update Use Case and Class UML Diagrams
+[33m1c22301[m Delete docs/uml/Use Case Diagram.pdf
+[33mb94f9c3[m Delete docs/uml/Class Diagram.pdf
+[33m94fc9a7[m feat(tests): add Tropical Cyclone Dashboard test suite with manual and automated coverage
+[33mc80388a[m add:  Tropical Cyclone Process (Readme) file
+[33m03c96c0[m feat : [TC-03] Add tropical cyclone dashboard visualization
+[33m66ece80[m [TC-02] Store scraped tropical cyclone data in database
+[33m0221aa6[m refactor: replace shared Alert collection with dedicated Earthquake and Typhoon models
+[33mf1b81c0[m feat: TC-01 - Scrape PAGASA cyclone data with JTWC fallback and dashboard UI
+[33m965c2e4[m docs: update STRUCTURE.md with current project layout and CI/CD pipeline
+[33m5fb5681[m [CI] Fix test_signup browser fixture, register pytest marks
+[33md21e935[m [CI] Bump Node.js to 20 - fix undici File is not defined error
+[33mc02ceff[m [CI] Fix automation - curl retry loop, MongoDB health check, explicit serve path
+[33m31d73a1[m [CI] Fix automation job - build frontend in job, use nohup for server startup
+[33me51f1c5[m [CI] Fix CI/CD pipeline configuration
+[33m1c4c16e[m add: Added the Earthquake Dashboard
+[33m5f2b248[m Migrated Local Database to Database Online
+[33m1957b3f[m Merge pull request #23 from richardtorculas/Test-Case-Signup
+[33m01daed6[m Merge pull request #22 from richardtorculas/Test-Case-Login
+[33m3ca9c22[m TC-005: Added Automated Landing Page Test using Selenium
+[33m1f44470[m TC-005: Added Automated Landing Page Test Using Selenium
+[33m3c42d01[m TC-005: Added Automated Signup Test using Selenium
+[33mbe71115[m TC-005: Added Log In Automated Test Using Selenium
+[33m0dafcca[m Add automation testing folder structure
+[33ma170fa4[m Merge pull request #20 from richardtorculas/TASK-ID-007-Database-Creation
+[33md580072[m Merge pull request #19 from richardtorculas/US-ID-005-Log-In-and-Sign-In-Feature
+[33m3cd573d[m feat: setup backend structure and database config for TASK-ID-007
+[33mb1d639a[m docs: add Code Review & Reflection
+[33mcaf561d[m docs: add security considerations for authentication and data storage
+[33md4cce0b[m docs: Add Coding standards and git contribution
+[33m619efde[m Implement front-end Log in and Sign in
+[33m968e63c[m docs: Add features summary for Prelim Laboratory Exam
+[33m6ece585[m docs: Uploaded the Assignment 3 (SE LAB) document
+[33mcf2e419[m Update roadmap dates for project milestones
+[33mb90d206[m Merge pull request #18 from richardtorculas/git_workflow_task
+[33m5d2192d[m docs: Define Git workflow and branching strategy
+[33me544670[m Merge pull request #17 from richardtorculas/main
+[33m1f72688[m chore: remove GIT_WORKFLOW.md
+[33md6fad8d[m Merge pull request #16 from richardtorculas/git_workflow_task
+[33mc869704[m Add system architecture diagram
+[33mfcd9bcd[m docs: Define Git workflow and branching strategy
+[33m5c0f7a2[m docs: update README with new tech stack details
+[33me158c8b[m Update README.md
+[33mc41af47[m Establish project data access folder structure
+[33m7a064d4[m Establish project business logic folder structure
+[33mb18b7de[m Establish project presentation layer folder structure
+[33mad4aae8[m Update team roles in README.md
+[33mcf8faf5[m Upload Working Use Case and Class Diagrams
+[33m8cb1946[m Delete uml directory
+[33mac611e8[m Delete architecture directory
+[33m4c784f7[m Fix uml directory path
+[33m81b6c19[m Update read me adding the Part 1: Technical Architecture Definition of Groupwork 3: Pre-Sprint Technical Readiness Activity
+[33m2b278b1[m Fix architecture directory path
+[33m593743b[m Delete docs/architecture/uml directory
+[33m2fb8d35[m Fix docs directory path
+[33mb622996[m Delete Technical Architecture Definition.md
+[33mc260e67[m Tentative Class Diagram
+[33mc920ac9[m Tentative Use Case Diagram
+[33mac073f5[m Create  Technical Architecture Definition.md
+[33m49f42dd[m update: Fix formatting of members list in README.md
+[33m6281b34[m update: Include team members and their GitHub accounts
+[33m28fb25f[m Delete docs /architecture /uml /src /tests directory
+[33mde44983[m Initialize tests directory with README
+[33mfce5448[m Initialize src directory with README
+[33m48338b6[m Initialize uml directory with README
+[33m5d3cf77[m Initialize architecture directory with README
+[33md806acd[m Initialize docs directory with README
+[33ma70a730[m Create reamde.md
+[33m619af0e[m Delete docs/architecture /uml /src /tests directory
+[33m665ee87[m chore: initialize project directory structure
+[33m9c12b63[m Delete docs
+[33mcc1c0ed[m Create docs directory
+[33m7981ce3[m docs: initialize README.md with project overview
+[33m606a487[m Initial commit
