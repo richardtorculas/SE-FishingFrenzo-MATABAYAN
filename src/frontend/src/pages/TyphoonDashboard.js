@@ -333,7 +333,7 @@ const TyphoonDashboard = () => {
     setRefreshing(true);
     setError(null);
     try {
-      await axios.post('http://localhost:5000/api/typhoons/historical');
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/typhoons/historical`);
       await new Promise(resolve => setTimeout(resolve, 500));
       await loadData();
     } catch {
