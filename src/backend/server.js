@@ -34,14 +34,9 @@ const weatherRoutes = require('./src/routes/weatherRoutes');
 const alertsRoutes = require('./src/routes/alertsRoutes');
 const cycloneAlertsRoutes = require('./src/routes/cycloneAlertsRoutes');
 
-// Services
-const cron = require('node-cron');
-const { fetchEarthquakeData } = require('./src/services/phivolcsService');
-const { fetchTyphoonData } = require('./src/services/pagasaService');
+// Services (cron disabled on Vercel — data is fetched on-demand via API routes)
 const { triggerCycloneAlerts } = require('./src/services/cycloneAlertTrigger');
 const { processAlertNotifications } = require('./src/services/cycloneNotificationService');
-const Earthquake = require('./src/models/Earthquake');
-const Typhoon = require('./src/models/Typhoon');
 
 // ========== EXPRESS APP INITIALIZATION ==========
 const app = express();
@@ -109,65 +104,6 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use('/api/cyclone-alerts', cycloneAlertsRoutes);
 
-// ========== PHIVOLCS CRON JOB ==========
-// Fetch latest earthquake data every 5 minutes
-cron.schedule('*/5 * * * *', async () => {
-  try {
-    const earthquakeData = await fetchEarthquakeData();
-    for (const eq of earthquakeData) {
-      const existing = await Earthquake.findOne({
-        location: eq.location,
-        timestamp: eq.timestamp
-      });
-      if (!existing) await Earthquake.create(eq);
-    }
-    console.log('🌍 PHIVOLCS earthquake data updated');
-  } catch (err) {
-    console.error('❌ PHIVOLCS cron error:', err.message);
-  }
-});
-
-// ========== PAGASA CRON JOB ==========
-// Fetch latest typhoon data every 30 minutes (bulletins update less frequently)
-cron.schedule('*/30 * * * *', async () => {
-  try {
-    const typhoonData = await fetchTyphoonData();
-    let saved = 0;
-    let alertStats = { created: 0, skipped: 0 };
-    let notificationStats = { processed: 0, successful: 0, failed: 0 };
-
-    for (const cyclone of typhoonData) {
-      const existing = await Typhoon.findOne({ stormKey: cyclone.stormKey });
-      if (existing) continue;
-      
-      const sameStorm = await Typhoon.findOne({ name: cyclone.name }).sort({ timestamp: -1 });
-      let savedCyclone;
-      
-      if (sameStorm) {
-        await Typhoon.findByIdAndUpdate(sameStorm._id, {
-          $push: { trajectory: { latitude: cyclone.latitude, longitude: cyclone.longitude, timestamp: cyclone.timestamp, windKph: cyclone.windKph } },
-          $set:  { latitude: cyclone.latitude, longitude: cyclone.longitude, windKph: cyclone.windKph, severity: cyclone.severity, category: cyclone.category, signal: cyclone.signal, location: cyclone.location, movementDirection: cyclone.movementDirection, movementSpeedKph: cyclone.movementSpeedKph, description: cyclone.description, timestamp: cyclone.timestamp, stormKey: cyclone.stormKey }
-        });
-        savedCyclone = await Typhoon.findById(sameStorm._id);
-      } else {
-        savedCyclone = await Typhoon.create(cyclone);
-        saved++;
-      }
-
-      // Trigger cyclone alerts
-      const stats = await triggerCycloneAlerts(savedCyclone);
-      alertStats.created += stats.created;
-      alertStats.skipped += stats.skipped;
-    }
-
-    // Process notifications for all pending alerts
-    notificationStats = await processAlertNotifications();
-
-    console.log(`🌀 PAGASA typhoon data updated — ${typhoonData.length} active cyclone(s), ${saved} new, ${alertStats.created} alerts created, ${notificationStats.successful} notifications sent`);
-  } catch (err) {
-    console.error('❌ PAGASA cron error:', err.message);
-  }
-});
 
 // ========== HEALTH CHECK ENDPOINT ==========
 app.get('/health', (req, res) => {
