@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, MapPin, AlertCircle, CheckCircle2, ChevronRight, ChevronLeft, Phone, Bell } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import AuthLayout from './AuthLayout';
 import { validateEmail, validatePassword } from '../../utils/validation';
 import { provinces, citiesByProvince } from '../../utils/phLocations';
 import axios from 'axios';
@@ -111,16 +112,17 @@ const SignUp = () => {
     : null;
 
   return (
-    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
+    <AuthLayout>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="bg-white rounded-3xl shadow-card w-full max-w-md overflow-hidden border border-gray-200"
       >
+
         {/* Card header */}
-        <div className="px-8 pt-8 pb-5 border-b border-gray-100">
-          <div className="flex items-center gap-2.5 mb-1">
+        <div className="px-8 pt-8 pb-5 border-b border-gray-100 text-center">
+          <div className="flex items-center justify-center gap-2.5 mb-1">
             <img src="/logo.png" alt="MataBayan" className="h-8 w-auto" />
             <span className="text-lg font-bold text-ink tracking-tight">MataBayan</span>
           </div>
@@ -321,7 +323,7 @@ const SignUp = () => {
           </p>
         </div>
       </motion.div>
-    </div>
+    </AuthLayout>
   );
 };
 
