@@ -55,6 +55,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:3000',
   'https://matabayan.vercel.app',
+  'https://matabayan-backend.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
