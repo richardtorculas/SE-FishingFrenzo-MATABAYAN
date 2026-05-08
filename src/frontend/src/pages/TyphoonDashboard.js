@@ -393,10 +393,10 @@ const TyphoonDashboard = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <StatCard label="Total Cyclones" value={stats?.total ?? '—'}                               icon={<Wind size={18} className="text-gray-500" />}         color="bg-gray-50" />
+          <StatCard label="Active Cyclones"  value={stats?.total ?? '—'}                               icon={<Wind size={18} className="text-gray-500" />}         color="bg-gray-50" />
           <StatCard label="Highest Winds"   value={stats?.highestWindKph ? `${stats.highestWindKph} km/h` : '—'} icon={<AlertTriangle size={18} className="text-red-400" />} color="bg-red-50"  />
-          <StatCard label="Most Intense"    value={stats?.highestStormName ? `${stats.highestStormName}` : '—'} subtext={stats?.highestStormCategory ?? ''} icon={<Wind size={18} className="text-gray-500" />}         color="bg-gray-50" />
-          <StatCard label="Active Cyclone" value={stats?.activeCycloneName ? `${stats.activeCycloneName}` : '—'}                              icon={<BarChart2 size={18} className="text-gray-500" />}    color="bg-gray-50" />
+          <StatCard label="Strongest Storm"    value={stats?.highestStormName ? `${stats.highestStormName}` : '—'} subtext={stats?.highestStormCategory ?? ''} icon={<Wind size={18} className="text-gray-500" />}         color="bg-gray-50" />
+          <StatCard label="Category" value={stats?.activeCycloneName ? `${stats.activeCycloneName}` : '—'}                              icon={<BarChart2 size={18} className="text-gray-500" />}    color="bg-gray-50" />
         </div>
 
         {/* Tabs */}

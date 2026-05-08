@@ -85,6 +85,7 @@ jobs:
         run: npm run build
         env:
           CI: false
+          REACT_APP_API_URL: http://localhost:5000
       - name: Start backend
         working-directory: src/backend
         run: node server.js > /tmp/backend.log 2>&1 &

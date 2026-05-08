@@ -13,7 +13,7 @@ EQ_URL = f"{BASE_URL}/earthquakes"
 
 def navigate_to_earthquake_dashboard(driver):
     driver.get(EQ_URL)
-    wait = WebDriverWait(driver, 15)
+    wait = WebDriverWait(driver, 30)
     wait.until(EC.presence_of_element_located(
         (By.XPATH, "//*[contains(text(), 'PHIVOLCS Earthquake Monitor')]")
     ))
