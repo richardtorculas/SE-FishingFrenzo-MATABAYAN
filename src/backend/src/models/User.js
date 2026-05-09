@@ -13,7 +13,7 @@ const bcrypt = require('bcryptjs');
 
 /**
  * User Schema Definition
- * Stores user account information and location preferences
+ * Stores user account information and preferences
  */
 const userSchema = new mongoose.Schema({
   // ========== BASIC INFORMATION ==========
@@ -26,40 +26,53 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, 'Email is required'],
-    unique: true,                              // Prevent duplicate emails
-    lowercase: true,                           // Store in lowercase
+    unique: true,
+    lowercase: true,
     match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
   },
-  
+
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minlength: 8,                              // Minimum 8 characters
-    select: false                              // Don't return password in queries by default
+    minlength: 8,
+    select: false
   },
 
-  // ========== LOCATION & ALERT PREFERENCES ==========
+  phoneNumber: {
+    type: String,
+    match: [/^\+63\d{9,10}$/, 'Please provide a valid Philippine phone number (e.g., +639123456789)'],
+    default: null
+  },
+
+  // ========== LOCATION ==========
+  province: {
+    type: String,
+    default: null
+  },
+  cityMunicipality: {
+    type: String,
+    default: null
+  },
+
+  // ========== USER PREFERENCES ==========
   preferences: {
-    province: {
-      type: String,
-      required: [true, 'Province is required']  // For location-based alerts
-    },
-    cityMunicipality: {
-      type: String,
-      required: [true, 'City/Municipality is required']
-    },
     language: {
       type: String,
-      enum: ['en', 'fil'],                      // English or Filipino
+      enum: ['en', 'fil'],
       default: 'en'
     },
-    // Alert type subscriptions
     alertTypes: {
       typhoon: { type: Boolean, default: true },
       earthquake: { type: Boolean, default: true },
       volcano: { type: Boolean, default: true },
       flood: { type: Boolean, default: true }
     }
+  },
+
+  // ========== NOTIFICATION PREFERENCES ==========
+  notificationPreferences: {
+    smsEnabled: { type: Boolean, default: false },
+    inAppEnabled: { type: Boolean, default: true }
   },
 
   // ========== METADATA ==========
@@ -74,10 +87,7 @@ const userSchema = new mongoose.Schema({
  * Automatically hash password before saving to database
  */
 userSchema.pre('save', async function(next) {
-  // Only hash if password is modified
   if (!this.isModified('password')) return next();
-  
-  // Hash password with bcrypt (12 salt rounds)
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });

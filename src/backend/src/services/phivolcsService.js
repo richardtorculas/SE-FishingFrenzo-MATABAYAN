@@ -36,7 +36,7 @@ const extractProvince = (locationStr) => {
 const scrapePhivolcs = async (limit = 50) => {
   const https = require('https');
   const response = await axios.get(PHIVOLCS_URL, {
-    timeout: 15000,
+    timeout: 8000,
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MataBayan/1.0)' },
     httpsAgent: new https.Agent({ rejectUnauthorized: false }) // PHIVOLCS has SSL cert issues
   });
@@ -139,6 +139,13 @@ const fetchFromUSGS = async (limit = 50) => {
 
 // ── MAIN EXPORT: Primary + Fallback ─────────────────────────────────────────
 const fetchEarthquakeData = async (limit = 50) => {
+  // On Vercel serverless, skip scraping and go straight to USGS to avoid timeout
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🌐 Production: fetching from USGS...');
+    const data = await fetchFromUSGS(limit);
+    console.log(`✅ USGS: ${data.length} earthquakes fetched`);
+    return data;
+  }
   try {
     console.log('🌐 Fetching from PHIVOLCS...');
     const data = await scrapePhivolcs(limit);

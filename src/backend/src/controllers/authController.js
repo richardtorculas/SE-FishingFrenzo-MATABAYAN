@@ -18,9 +18,9 @@ const User = require('../models/User');
  */
 const signToken = (id) => {
   return jwt.sign(
-    { id },                                    // Payload: user ID
-    process.env.JWT_SECRET,                    // Secret key from .env
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }  // Token expires in 7 days
+    { id },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   );
 };
 
@@ -31,10 +31,8 @@ const signToken = (id) => {
  * @param {Object} res - Express response object
  */
 const createSendToken = (user, statusCode, res) => {
-  // Generate JWT token
   const token = signToken(user._id);
   
-  // Cookie configuration
   const cookieOptions = {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     httpOnly: true,
@@ -42,13 +40,9 @@ const createSendToken = (user, statusCode, res) => {
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
   };
 
-  // Send token as HTTP-only cookie
   res.cookie('jwt', token, cookieOptions);
-
-  // Remove password from output
   user.password = undefined;
 
-  // Send success response
   res.status(statusCode).json({
     status: 'success',
     token,
@@ -61,23 +55,30 @@ const createSendToken = (user, statusCode, res) => {
  * SIGNUP - Register new user
  * ========================================
  * POST /api/auth/signup
- * Body: { name, email, password, preferences }
+ * Body: { name, email, password, province, cityMunicipality, phoneNumber, preferences, notificationPreferences }
  */
 exports.signup = async (req, res) => {
   try {
-    console.log('📝 Registration attempt:', req.body.email);
+    console.log('Registration attempt:', req.body.email);
     
-    const { name, email, password, preferences } = req.body;
+    const { 
+      name, 
+      email, 
+      password, 
+      province, 
+      cityMunicipality, 
+      phoneNumber,
+      preferences,
+      notificationPreferences 
+    } = req.body;
 
-    // Validate required fields
-    if (!name || !email || !password || !preferences) {
+    if (!name || !email || !password || !province || !cityMunicipality) {
       return res.status(400).json({
         status: 'fail',
-        message: 'All fields are required'
+        message: 'Name, email, password, province, and city/municipality are required'
       });
     }
 
-    // Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -86,21 +87,33 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Create new user (password will be hashed by pre-save middleware)
     const newUser = await User.create({
       name,
       email,
       password,
-      preferences
+      province,
+      cityMunicipality,
+      phoneNumber: phoneNumber || null,
+      preferences: {
+        language: preferences?.language || 'en',
+        alertTypes: preferences?.alertTypes || {
+          typhoon: true,
+          earthquake: true,
+          volcano: true,
+          flood: true
+        }
+      },
+      notificationPreferences: {
+        smsEnabled: notificationPreferences?.smsEnabled || false,
+        inAppEnabled: notificationPreferences?.inAppEnabled !== false
+      }
     });
 
-    console.log('✅ User registered:', newUser.email);
-    
-    // Send token and user data
+    console.log('User registered:', newUser.email);
     createSendToken(newUser, 201, res);
     
   } catch (error) {
-    console.error('❌ Registration error:', error.message);
+    console.error('Registration error:', error.message);
     res.status(400).json({
       status: 'fail',
       message: error.message
@@ -119,7 +132,6 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({
         status: 'fail',
@@ -127,10 +139,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Find user and include password field (normally excluded)
     const user = await User.findOne({ email }).select('+password');
 
-    // Verify user exists and password is correct
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({
         status: 'fail',
@@ -138,13 +148,11 @@ exports.login = async (req, res) => {
       });
     }
 
-    console.log('✅ User logged in:', user.email);
-    
-    // Send token and user data
+    console.log('User logged in:', user.email);
     createSendToken(user, 200, res);
     
   } catch (error) {
-    console.error('❌ Login error:', error.message);
+    console.error('Login error:', error.message);
     res.status(400).json({
       status: 'fail',
       message: error.message
@@ -159,9 +167,8 @@ exports.login = async (req, res) => {
  * POST /api/auth/logout
  */
 exports.logout = (req, res) => {
-  // Overwrite JWT cookie with dummy value
   res.cookie('jwt', 'loggedout', {
-    expires: new Date(Date.now() + 10 * 1000), // Expires in 10 seconds
+    expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true
   });
   
@@ -177,7 +184,6 @@ exports.logout = (req, res) => {
  */
 exports.getMe = async (req, res) => {
   try {
-    // req.user is set by protect middleware
     const user = await User.findById(req.user.id);
     
     res.status(200).json({
@@ -212,8 +218,8 @@ exports.updateLocation = async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { 'preferences.province': province, 'preferences.cityMunicipality': cityMunicipality },
-      { new: true, runValidators: true }
+      { province, cityMunicipality },
+      { new: true }
     );
 
     res.status(200).json({ status: 'success', user });

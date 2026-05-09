@@ -9,13 +9,43 @@ WEATHER_URL = f"{BASE_URL}/weather"
 LOGIN_URL = f"{BASE_URL}/login"
 
 # ============================================
+# FIXTURES
+# ============================================
+
+@pytest.fixture
+def weather_test_account(browser):
+    """Create a fresh account and return its credentials for weather tests."""
+    from selenium.webdriver.support.ui import Select
+    timestamp = int(time.time())
+    creds = {"email": f"weathertest{timestamp}@example.com", "password": "WeatherPass123!"}
+    wait = WebDriverWait(browser, 30)
+
+    browser.get(f"{BASE_URL}/signup")
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='text']"))).send_keys("Weather Test User")
+    browser.find_element(By.CSS_SELECTOR, "input[type='email']").send_keys(creds["email"])
+    pwd_fields = browser.find_elements(By.CSS_SELECTOR, "input[type='password']")
+    pwd_fields[0].send_keys(creds["password"])
+    pwd_fields[1].send_keys(creds["password"])
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]"))).click()
+
+    wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, "select")))
+    time.sleep(1)
+    Select(browser.find_elements(By.TAG_NAME, "select")[0]).select_by_visible_text("Metro Manila")
+    time.sleep(0.5)
+    Select(browser.find_elements(By.TAG_NAME, "select")[1]).select_by_visible_text("Manila")
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Sign Up')]"))).click()
+    wait.until(EC.url_contains("/dashboard"))
+
+    return creds
+
+# ============================================
 # HELPER FUNCTIONS
 # ============================================
 
-def login(driver, email="test@example.com", password="TestPassword123!"):
+def login(driver, email, password):
     """Log in before accessing the weather dashboard."""
     driver.get(LOGIN_URL)
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='email']"))).send_keys(email)
     driver.find_element(By.CSS_SELECTOR, "input[type='password']").send_keys(password)
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']"))).click()
@@ -35,7 +65,7 @@ def navigate_to_weather(driver):
 # ============================================
 
 @pytest.mark.weather
-def test_dashboard_header_loads(browser):
+def test_dashboard_header_loads(browser, weather_test_account):
     """
     WR-TC-001: Dashboard Header Loads
     Steps:
@@ -46,7 +76,7 @@ def test_dashboard_header_loads(browser):
     Expected: Heading, subtitle, and attribution footer are visible
     """
     print("\n[WR-TC-001] Testing dashboard header loads...")
-    login(browser)
+    login(browser, weather_test_account["email"], weather_test_account["password"])
     navigate_to_weather(browser)
     page_source = browser.page_source
     assert "Daily Weather Report" in page_source,                    "Header not found"
@@ -60,7 +90,7 @@ def test_dashboard_header_loads(browser):
 # ============================================
 
 @pytest.mark.weather
-def test_weather_stat_cards_render(browser):
+def test_weather_stat_cards_render(browser, weather_test_account):
     """
     WR-TC-005: Weather Stat Cards Render Correctly
     Steps:
@@ -70,7 +100,7 @@ def test_weather_stat_cards_render(browser):
     Expected: Temperature, Humidity, Chance of Rain stat cards all visible
     """
     print("\n[WR-TC-005] Testing weather stat cards render...")
-    login(browser)
+    login(browser, weather_test_account["email"], weather_test_account["password"])
     navigate_to_weather(browser)
 
     # Wait for weather data to load
@@ -98,7 +128,7 @@ def test_weather_stat_cards_render(browser):
 # ============================================
 
 @pytest.mark.weather
-def test_open_meteo_attribution_footer(browser):
+def test_open_meteo_attribution_footer(browser, weather_test_account):
     """
     WR-TC-007: Open-Meteo Attribution Footer Visible
     Steps:
@@ -107,7 +137,7 @@ def test_open_meteo_attribution_footer(browser):
     Expected: Open-Meteo link visible at footer
     """
     print("\n[WR-TC-007] Testing Open-Meteo attribution footer...")
-    login(browser)
+    login(browser, weather_test_account["email"], weather_test_account["password"])
     navigate_to_weather(browser)
     browser.execute_script("window.scrollTo(0, document.body.scrollHeight)")
     time.sleep(0.5)
@@ -123,7 +153,7 @@ def test_open_meteo_attribution_footer(browser):
 
 @pytest.mark.weather
 @pytest.mark.negative
-def test_invalid_location_shows_error(browser):
+def test_invalid_location_shows_error(browser, weather_test_account):
     """
     WR-TC-011: NEGATIVE — Invalid Location Shows Error Message
     Steps:
@@ -133,7 +163,7 @@ def test_invalid_location_shows_error(browser):
     Expected: Error message appears. Page does not crash.
     """
     print("\n[WR-TC-011] Testing invalid location error handling...")
-    login(browser)
+    login(browser, weather_test_account["email"], weather_test_account["password"])
     navigate_to_weather(browser)
 
     # Inject an axios call with a fake location to trigger geocoding failure

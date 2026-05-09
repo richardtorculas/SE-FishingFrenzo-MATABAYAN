@@ -11,7 +11,7 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/users');
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`);
       setUsers(response.data.data);
     } catch (err) {
       setError('Failed to load users. Make sure the backend is running.');

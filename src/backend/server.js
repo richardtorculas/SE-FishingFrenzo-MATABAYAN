@@ -31,13 +31,12 @@ const userRoutes = require('./src/routes/userRoutes');
 const earthquakeRoutes = require('./src/routes/earthquakeRoutes');
 const typhoonRoutes = require('./src/routes/typhoonRoutes');
 const weatherRoutes = require('./src/routes/weatherRoutes');
+const alertsRoutes = require('./src/routes/alertsRoutes');
+const cycloneAlertsRoutes = require('./src/routes/cycloneAlertsRoutes');
 
-// Services
-const cron = require('node-cron');
-const { fetchEarthquakeData } = require('./src/services/phivolcsService');
-const { fetchTyphoonData } = require('./src/services/pagasaService');
-const Earthquake = require('./src/models/Earthquake');
-const Typhoon = require('./src/models/Typhoon');
+// Services (cron disabled on Vercel — data is fetched on-demand via API routes)
+const { triggerCycloneAlerts } = require('./src/services/cycloneAlertTrigger');
+const { processAlertNotifications } = require('./src/services/cycloneNotificationService');
 
 // ========== EXPRESS APP INITIALIZATION ==========
 const app = express();
@@ -48,10 +47,26 @@ const app = express();
  * CORS - Enable cross-origin requests from frontend
  * Allows frontend (localhost:3000) to communicate with backend (localhost:5000)
  */
-app.use(cors({ 
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://matabayan.vercel.app',
+  'https://matabayan-backend.vercel.app',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 
 /**
  * Body Parser - Parse incoming JSON requests
@@ -82,53 +97,13 @@ app.use('/api/auth', authRoutes);
  * Endpoints: / (get all users)
  */
 app.use('/api/users', userRoutes);
+
 app.use('/api/earthquakes', earthquakeRoutes);
 app.use('/api/typhoons', typhoonRoutes);
 app.use('/api/weather', weatherRoutes);
+app.use('/api/alerts', alertsRoutes);
+app.use('/api/cyclone-alerts', cycloneAlertsRoutes);
 
-// ========== PHIVOLCS CRON JOB ==========
-// Fetch latest earthquake data every 5 minutes
-cron.schedule('*/5 * * * *', async () => {
-  try {
-    const earthquakeData = await fetchEarthquakeData();
-    for (const eq of earthquakeData) {
-      const existing = await Earthquake.findOne({
-        location: eq.location,
-        timestamp: eq.timestamp
-      });
-      if (!existing) await Earthquake.create(eq);
-    }
-    console.log('🌍 PHIVOLCS earthquake data updated');
-  } catch (err) {
-    console.error('❌ PHIVOLCS cron error:', err.message);
-  }
-});
-
-// ========== PAGASA CRON JOB ==========
-// Fetch latest typhoon data every 30 minutes (bulletins update less frequently)
-cron.schedule('*/30 * * * *', async () => {
-  try {
-    const typhoonData = await fetchTyphoonData();
-    let saved = 0;
-    for (const cyclone of typhoonData) {
-      const existing = await Typhoon.findOne({ stormKey: cyclone.stormKey });
-      if (existing) continue;
-      const sameStorm = await Typhoon.findOne({ name: cyclone.name }).sort({ timestamp: -1 });
-      if (sameStorm) {
-        await Typhoon.findByIdAndUpdate(sameStorm._id, {
-          $push: { trajectory: { latitude: cyclone.latitude, longitude: cyclone.longitude, timestamp: cyclone.timestamp, windKph: cyclone.windKph } },
-          $set:  { latitude: cyclone.latitude, longitude: cyclone.longitude, windKph: cyclone.windKph, severity: cyclone.severity, category: cyclone.category, signal: cyclone.signal, location: cyclone.location, movementDirection: cyclone.movementDirection, movementSpeedKph: cyclone.movementSpeedKph, description: cyclone.description, timestamp: cyclone.timestamp, stormKey: cyclone.stormKey }
-        });
-      } else {
-        await Typhoon.create(cyclone);
-        saved++;
-      }
-    }
-    console.log(`🌀 PAGASA typhoon data updated — ${typhoonData.length} active cyclone(s), ${saved} new`);
-  } catch (err) {
-    console.error('❌ PAGASA cron error:', err.message);
-  }
-});
 
 // ========== HEALTH CHECK ENDPOINT ==========
 app.get('/health', (req, res) => {

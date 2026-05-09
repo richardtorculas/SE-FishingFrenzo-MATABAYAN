@@ -203,8 +203,8 @@ const EarthquakeDashboard = () => {
   const loadData = useCallback(async () => {
     try {
       const [eqRes, statsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/earthquakes'),
-        axios.get('http://localhost:5000/api/earthquakes/stats'),
+        axios.get(`${process.env.REACT_APP_API_URL}/api/earthquakes?limit=50`),
+        axios.get(`${process.env.REACT_APP_API_URL}/api/earthquakes/stats`),
       ]);
       setEarthquakes(eqRes.data.data || []);
       setStats(statsRes.data.data || null);
@@ -222,7 +222,7 @@ const EarthquakeDashboard = () => {
     setRefreshing(true);
     setError(null);
     try {
-      await axios.post('http://localhost:5000/api/earthquakes/update');
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/earthquakes/update`);
       await loadData();
     } catch {
       setError('Failed to fetch from PHIVOLCS. Check your internet connection.');
@@ -233,8 +233,8 @@ const EarthquakeDashboard = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      try { await axios.post('http://localhost:5000/api/earthquakes/update'); } catch (_) {}
       await loadData();
+      triggerUpdate();
     };
     init();
     const interval = setInterval(triggerUpdate, 5 * 60 * 1000);
@@ -294,8 +294,8 @@ const EarthquakeDashboard = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <StatCard label="Total Recorded"  value={stats?.total ?? earthquakes.length}                                        icon={<Activity size={18} className="text-gray-500" />}     color="bg-gray-50" />
-          <StatCard label="Last 24 Hours"   value={stats?.last24Hours ?? 0}                                                   icon={<Clock size={18} className="text-gray-500" />}        color="bg-gray-50" />
+          <StatCard label="Total Recorded"  value={stats?.total ?? 0}                                                         icon={<Activity size={18} className="text-gray-500" />}     color="bg-gray-50" />
+          <StatCard label="Recorded Today"  value={stats?.recordedToday ?? 0}                                                 icon={<Clock size={18} className="text-gray-500" />}        color="bg-gray-50" />
           <StatCard label="High / Critical" value={(severityCounts.Critical || 0) + (severityCounts.High || 0)}               icon={<AlertTriangle size={18} className="text-red-400" />} color="bg-red-50"  />
           <StatCard label="Tsunami Alerts"  value={stats?.tsunamiCount ?? 0}                                                  icon={<Waves size={18} className="text-gray-500" />}        color="bg-gray-50" />
         </div>

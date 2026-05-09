@@ -55,6 +55,13 @@ const typhoonSchema = new mongoose.Schema({
   // This ensures the same storm at the same position within the same hour = duplicate
   stormKey:    { type: String, required: true, unique: true, index: true },
 
+  // ── Historical flag ──────────────────────────────────────────────────────
+  isHistorical: { type: Boolean, default: false },
+
+  // ── PAR Entry/Exit dates ──────────────────────────────────────────────────
+  parEntryDate: { type: String, default: null },
+  parExitDate:  { type: String, default: null },
+
   timestamp:   { type: Date, default: Date.now }
 }, {
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
