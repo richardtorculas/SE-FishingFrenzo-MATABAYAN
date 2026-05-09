@@ -53,7 +53,9 @@ const SignUp = () => {
 
   const validateStep3 = () => {
     const newErrors = {};
-    if (formData.phoneNumber && !/^\+63\d{9,10}$/.test(formData.phoneNumber)) {
+    if (formData.notificationPreferences.smsEnabled && !/^\+63\d{9,10}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = 'A valid phone number (+639XXXXXXXXX) is required to enable SMS notifications.';
+    } else if (formData.phoneNumber && !/^\+63\d{9,10}$/.test(formData.phoneNumber)) {
       newErrors.phoneNumber = 'Invalid phone format (e.g., +639123456789)';
     }
     setErrors(newErrors);
@@ -282,14 +284,14 @@ const SignUp = () => {
                         />
                         <span className="ml-2.5 text-sm text-gray-700">SMS Notifications (Primary)</span>
                       </label>
-                      <label className="flex items-center cursor-pointer">
+                      <label className="flex items-center cursor-not-allowed opacity-60">
                         <input
                           type="checkbox"
-                          checked={formData.notificationPreferences.inAppEnabled}
-                          onChange={() => handleNotificationChange('inAppEnabled')}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          checked={true}
+                          disabled
+                          className="w-4 h-4 text-blue-600 rounded"
                         />
-                        <span className="ml-2.5 text-sm text-gray-700">In-App Notifications</span>
+                        <span className="ml-2.5 text-sm text-gray-700">In-App Notifications (Always enabled)</span>
                       </label>
                     </div>
                   </div>

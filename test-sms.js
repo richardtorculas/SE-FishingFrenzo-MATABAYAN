@@ -30,7 +30,7 @@ async function testSMS() {
   const SMS_API_URL = `${SMS_API_BASE}/${DEVICE_ID}/send-sms`;
   console.log(`API URL: ${SMS_API_URL}\n`);
 
-  const testPhone = '+639928112266';
+  const testPhone = '+639763214551';
   const testMessage = '🚨 MataBayan ALERT: Magnitude 6.5 detected 45km away in Albay. Depth: 15km. Stay safe!';
 
   console.log(`Testing SMS to: ${testPhone}`);

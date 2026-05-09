@@ -22,11 +22,11 @@ router.patch('/preferences', protect, async (req, res) => {
     const { province, cityMunicipality, alertTypes, notificationPreferences, phoneNumber } = req.body;
 
     const updateData = {};
-    if (province) updateData['province'] = province;
-    if (cityMunicipality) updateData['cityMunicipality'] = cityMunicipality;
-    if (alertTypes) updateData['preferences.alertTypes'] = alertTypes;
-    if (notificationPreferences) updateData['notificationPreferences'] = notificationPreferences;
-    if (phoneNumber) updateData['phoneNumber'] = phoneNumber;
+    if (province !== undefined) updateData['province'] = province;
+    if (cityMunicipality !== undefined) updateData['cityMunicipality'] = cityMunicipality;
+    if (alertTypes !== undefined) updateData['preferences.alertTypes'] = alertTypes;
+    if (notificationPreferences !== undefined) updateData['notificationPreferences'] = notificationPreferences;
+    if (phoneNumber !== undefined) updateData['phoneNumber'] = phoneNumber || null;
 
     const user = await User.findByIdAndUpdate(
       req.user._id,

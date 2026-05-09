@@ -219,7 +219,7 @@ exports.updateLocation = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.user.id,
       { province, cityMunicipality },
-      { new: true, runValidators: true }
+      { new: true }
     );
 
     res.status(200).json({ status: 'success', user });

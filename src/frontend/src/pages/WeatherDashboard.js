@@ -149,8 +149,8 @@ const WeatherDashboard = () => {
 
   useEffect(() => {
     if (!user) return;
-    const userProvince = user.preferences?.province || 'Laguna';
-    const userCity = user.preferences?.cityMunicipality || 'Biñan';
+    const userProvince = user.province || 'Laguna';
+    const userCity = user.cityMunicipality || 'Biñan';
     const resolvedCity = citiesByProvince[userProvince]?.includes(userCity)
       ? userCity
       : citiesByProvince[userProvince]?.[0] || '';
@@ -193,9 +193,9 @@ const WeatherDashboard = () => {
               Current weather conditions — Philippines
               {lastUpdated && <span className="ml-2">· Updated {lastUpdated.toLocaleTimeString('en-PH')}</span>}
             </p>
-            {user?.preferences?.province && (
+            {user?.province && (
               <p className="text-xs text-gray-400 mt-0.5">
-                📍 Based on your profile ({user.preferences.cityMunicipality}, {user.preferences.province})
+                📍 Based on your profile ({user.cityMunicipality}, {user.province})
               </p>
             )}
           </div>
