@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { Cloud, Droplets, Thermometer, RefreshCw, MapPin } from 'lucide-react';
 import { provinces, citiesByProvince } from '../utils/phLocations';
+import { provinceCoordinates } from '../utils/phCoordinates';
 import { useAuth } from '../context/AuthContext';
 
 const getWeatherIcon = (code) => {
@@ -125,18 +126,29 @@ const WeatherDashboard = () => {
   const [error, setError]             = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const fetchWeather = useCallback(async (loc) => {
+  const fetchWeather = useCallback(async (loc, prov) => {
     if (!loc) return;
     setLoading(true);
     setError(null);
     try {
+      // 1. Try city name geocoding
+      let coords = null;
+      let resolvedLabel = loc;
       const geoRes = await axios.get('https://geocoding-api.open-meteo.com/v1/search', {
-        params: { name: loc, count: 1, language: 'en', format: 'json' }
+        params: { name: `${loc}, Philippines`, count: 1, language: 'en', format: 'json', countryCode: 'PH' }
       });
       const result = geoRes.data.results?.[0];
-      if (!result) throw new Error(`Location "${loc}" not found.`);
+      if (result) {
+        coords = { latitude: result.latitude, longitude: result.longitude };
+      } else if (prov && provinceCoordinates[prov]) {
+        // 2. Fall back to static province coordinates
+        coords = { latitude: provinceCoordinates[prov].lat, longitude: provinceCoordinates[prov].lon };
+        resolvedLabel = `${loc} (${prov} area)`;
+      } else {
+        throw new Error(`Location "${loc}" not found.`);
+      }
       const weatherRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/weather`, {
-        params: { latitude: result.latitude, longitude: result.longitude, location: loc }
+        params: { latitude: coords.latitude, longitude: coords.longitude, location: resolvedLabel }
       });
       setWeather(weatherRes.data.data);
       setLastUpdated(new Date());
@@ -156,7 +168,7 @@ const WeatherDashboard = () => {
       : citiesByProvince[userProvince]?.[0] || '';
     setProvince(userProvince);
     setCity(resolvedCity);
-    fetchWeather(resolvedCity);
+    fetchWeather(resolvedCity, userProvince);
   }, [user, fetchWeather]);
 
   const handleProvinceChange = (e) => {
@@ -173,6 +185,8 @@ const WeatherDashboard = () => {
     setWeather(null);
     setError(null);
   };
+
+  const handleFetch = () => fetchWeather(city, province);
 
   // Get dynamic colors for weather card
   const weatherColors = weather ? getWeatherCardColors(weather.condition, weather.weatherCode) : null;
@@ -199,7 +213,7 @@ const WeatherDashboard = () => {
               </p>
             )}
           </div>
-          <button onClick={() => fetchWeather(city)} disabled={loading} className="btn-secondary flex items-center gap-2 self-start">
+          <button onClick={handleFetch} disabled={loading} className="btn-secondary flex items-center gap-2 self-start">
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
             {loading ? 'Fetching...' : 'Fetch Weather'}
           </button>
@@ -223,6 +237,7 @@ const WeatherDashboard = () => {
               <select value={city} onChange={handleCityChange} className="input-field">
                 {(citiesByProvince[province] || []).map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+
             </div>
           </div>
         </div>
