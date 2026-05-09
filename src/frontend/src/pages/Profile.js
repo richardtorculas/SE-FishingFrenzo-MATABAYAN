@@ -103,6 +103,9 @@ const Profile = () => {
   };
 
   const handleSaveContact = async () => {
+    if (notificationPreferences.smsEnabled && !/^\+63\d{9,10}$/.test(phoneNumber)) {
+      return setContactError('A valid phone number (+639XXXXXXXXX) is required to enable SMS notifications.');
+    }
     setSavingContact(true);
     setContactError(null);
     try {
@@ -296,14 +299,14 @@ const Profile = () => {
                     />
                     <span className="ml-2.5 text-sm text-gray-700">SMS Notifications (Primary)</span>
                   </label>
-                  <label className="flex items-center cursor-pointer">
+                  <label className="flex items-center cursor-not-allowed opacity-60">
                     <input
                       type="checkbox"
-                      checked={notificationPreferences.inAppEnabled}
-                      onChange={() => handleNotificationChange('inAppEnabled')}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      checked={true}
+                      disabled
+                      className="w-4 h-4 text-blue-600 rounded"
                     />
-                    <span className="ml-2.5 text-sm text-gray-700">In-App Notifications</span>
+                    <span className="ml-2.5 text-sm text-gray-700">In-App Notifications (Always enabled)</span>
                   </label>
                 </div>
               </div>
