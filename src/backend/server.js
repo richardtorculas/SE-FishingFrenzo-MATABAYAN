@@ -50,13 +50,17 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:3000',
   'https://matabayan.vercel.app',
-  'https://matabayan-backend.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
+const isAllowedOrigin = (origin) =>
+  !origin ||
+  allowedOrigins.includes(origin) ||
+  /\.vercel\.app$/.test(origin);
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (!origin || allowedOrigins.includes(origin)) {
+  if (isAllowedOrigin(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
   }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -66,7 +70,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({ origin: (origin, cb) => cb(null, isAllowedOrigin(origin)), credentials: true }));
 
 /**
  * Body Parser - Parse incoming JSON requests

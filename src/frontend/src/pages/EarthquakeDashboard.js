@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Activity, AlertTriangle, MapPin, Clock, Layers, RefreshCw, ExternalLink, Waves, Loader, X } from 'lucide-react';
 
+const API = (process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
+
 const THREAT_CONFIG = {
   Critical: { bg: 'bg-red-50',      border: 'border-l-red-400',    text: 'text-red-700',    badge: 'bg-red-100 text-red-700',        pulse: true  },
   High:     { bg: 'bg-orange-50',   border: 'border-l-orange-400', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', pulse: true  },
@@ -203,8 +205,8 @@ const EarthquakeDashboard = () => {
   const loadData = useCallback(async () => {
     try {
       const [eqRes, statsRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL}/api/earthquakes?limit=50`),
-        axios.get(`${process.env.REACT_APP_API_URL}/api/earthquakes/stats`),
+        axios.get(`${API}/api/earthquakes?limit=50`),
+        axios.get(`${API}/api/earthquakes/stats`),
       ]);
       setEarthquakes(eqRes.data.data || []);
       setStats(statsRes.data.data || null);
@@ -222,7 +224,7 @@ const EarthquakeDashboard = () => {
     setRefreshing(true);
     setError(null);
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/earthquakes/update`);
+      await axios.post(`${API}/api/earthquakes/update`);
       await loadData();
     } catch {
       setError('Failed to fetch from PHIVOLCS. Check your internet connection.');
