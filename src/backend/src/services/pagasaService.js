@@ -158,7 +158,7 @@ const scrapePagasa = async () => {
 // ── FALLBACK: JTWC ───────────────────────────────────────────────────────────
 const fetchFromJTWC = async () => {
   const response = await axios.get(JTWC_URL, {
-    timeout: 25000,
+    timeout: 10000,
     headers: HEADERS,
     httpsAgent: AGENT
   });

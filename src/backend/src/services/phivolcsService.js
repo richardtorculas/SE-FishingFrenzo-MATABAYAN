@@ -104,7 +104,7 @@ const fetchFromUSGS = async (limit = 50) => {
       limit,
       orderby: 'time'
     },
-    timeout: 25000
+    timeout: 10000
   });
 
   return (response.data.features || []).map(feature => {
@@ -139,16 +139,12 @@ const fetchFromUSGS = async (limit = 50) => {
 
 // ── MAIN EXPORT: Primary + Fallback ─────────────────────────────────────────
 const fetchEarthquakeData = async (limit = 50) => {
+  // On Vercel serverless, skip scraping and go straight to USGS to avoid timeout
   if (process.env.NODE_ENV === 'production') {
     console.log('🌐 Production: fetching from USGS...');
-    try {
-      const data = await fetchFromUSGS(limit);
-      console.log(`✅ USGS: ${data.length} earthquakes fetched`);
-      return data;
-    } catch (err) {
-      console.warn(`⚠️  USGS failed (${err.message})`);
-      return [];
-    }
+    const data = await fetchFromUSGS(limit);
+    console.log(`✅ USGS: ${data.length} earthquakes fetched`);
+    return data;
   }
   try {
     console.log('🌐 Fetching from PHIVOLCS...');
