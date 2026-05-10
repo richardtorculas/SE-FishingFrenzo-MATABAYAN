@@ -32,6 +32,39 @@ const extractProvince = (locationStr) => {
   return match ? match[1].trim() : 'Philippines';
 };
 
+// Map USGS place string to Philippine region/province
+// e.g. "25 km ENE of Baganga, Philippines" → "Davao Oriental"
+const USGS_PLACE_TO_REGION = {
+  'Baganga': 'Davao Oriental', 'Kinablangan': 'Davao Oriental', 'Mati': 'Davao Oriental',
+  'Davao': 'Davao del Sur', 'Digos': 'Davao del Sur', 'Tagum': 'Davao del Norte',
+  'General Santos': 'South Cotabato', 'Koronadal': 'South Cotabato', 'Cotabato': 'Maguindanao',
+  'Zamboanga': 'Zamboanga del Sur', 'Pagadian': 'Zamboanga del Sur',
+  'Cagayan de Oro': 'Misamis Oriental', 'Iligan': 'Lanao del Norte',
+  'Butuan': 'Agusan del Norte', 'Surigao': 'Surigao del Norte',
+  'Cebu': 'Cebu', 'Mandaue': 'Cebu', 'Lapu-Lapu': 'Cebu',
+  'Tacloban': 'Leyte', 'Ormoc': 'Leyte', 'Borongan': 'Eastern Samar',
+  'Catbalogan': 'Samar', 'Calbayog': 'Samar',
+  'Manila': 'Metro Manila', 'Quezon City': 'Metro Manila', 'Makati': 'Metro Manila',
+  'Batangas': 'Batangas', 'Lipa': 'Batangas', 'Lucena': 'Quezon',
+  'Legazpi': 'Albay', 'Naga': 'Camarines Sur', 'Sorsogon': 'Sorsogon',
+  'Iloilo': 'Iloilo', 'Bacolod': 'Negros Occidental', 'Dumaguete': 'Negros Oriental',
+  'Roxas': 'Capiz', 'Kalibo': 'Aklan',
+  'Baguio': 'Benguet', 'Tuguegarao': 'Cagayan', 'Laoag': 'Ilocos Norte',
+  'Vigan': 'Ilocos Sur', 'San Fernando': 'La Union', 'Dagupan': 'Pangasinan',
+  'Cabanatuan': 'Nueva Ecija', 'Angeles': 'Pampanga', 'Olongapo': 'Zambales',
+  'Puerto Princesa': 'Palawan', 'Coron': 'Palawan',
+};
+
+const extractProvinceFromUSGS = (place) => {
+  if (!place) return 'Philippines';
+  for (const [key, region] of Object.entries(USGS_PLACE_TO_REGION)) {
+    if (place.includes(key)) return region;
+  }
+  // Try extracting city/municipality name after "of "
+  const ofMatch = place.match(/of ([^,]+)/);
+  return ofMatch ? ofMatch[1].trim() : 'Philippines';
+};
+
 // ── PRIMARY: Scrape PHIVOLCS ─────────────────────────────────────────────────
 const scrapePhivolcs = async (limit = 50) => {
   const https = require('https');
@@ -113,10 +146,11 @@ const fetchFromUSGS = async (limit = 50) => {
     const magnitude = props.mag;
     const threat = calculateThreatLevel(magnitude, depth);
 
+    const usgsPlace = props.place || 'Philippines';
     return {
       severity: threat.level,
-      location: props.place || 'Philippines',
-      province: 'Philippines',
+      location: usgsPlace,
+      province: extractProvinceFromUSGS(usgsPlace),
       description: `Magnitude ${magnitude?.toFixed(1)} earthquake at depth of ${depth?.toFixed(1)}km. ${threat.description}`,
       source: 'PHIVOLCS',
       timestamp: new Date(props.time),
