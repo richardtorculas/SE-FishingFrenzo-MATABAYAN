@@ -49,4 +49,17 @@ const getWeather = async (req, res) => {
   }
 };
 
-module.exports = { getWeather };
+const getGeocode = async (req, res) => {
+  const { name } = req.query;
+  if (!name) return res.status(400).json({ status: 'error', message: 'name is required' });
+  try {
+    const { data } = await axios.get('https://geocoding-api.open-meteo.com/v1/search', {
+      params: { name, count: 1, language: 'en', format: 'json' }
+    });
+    res.json({ status: 'success', results: data.results || [] });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+module.exports = { getWeather, getGeocode };
