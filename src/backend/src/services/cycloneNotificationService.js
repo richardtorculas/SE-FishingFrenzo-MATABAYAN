@@ -6,7 +6,7 @@ const SMS_API_BASE = 'https://api.textbee.dev/api/v1/gateway/devices';
 const SMS_API_KEY = process.env.SMS_API_KEY || 'your-api-key';
 const DEVICE_ID = process.env.TEXTBEE_DEVICE_ID || 'default-device';
 
-// Format cyclone alert message
+// Format cyclone alert message with location
 const formatCycloneAlertMessage = (alert) => {
   const triggerText = {
     'par_entry': 'entered PAR',
@@ -14,7 +14,7 @@ const formatCycloneAlertMessage = (alert) => {
     'approaching_24h': 'approaching'
   };
 
-  return `🌀 MATABAYAN ALERT: Typhoon ${alert.cycloneName} (${alert.category}) has ${triggerText[alert.triggerReason] || 'updated'}. Wind: ${alert.windKph} km/h. Stay safe!`;
+  return `🌀 MATABAYAN ALERT: Typhoon ${alert.cycloneName} (${alert.category}) has ${triggerText[alert.triggerReason] || 'updated'}. Location: ${alert.location}. Wind: ${alert.windKph} km/h. Stay safe!`;
 };
 
 // Send SMS notification via TextBee
@@ -56,11 +56,15 @@ const sendSMS = async (phoneNumber, message) => {
 // Send in-app notification (mark alert as notificationSent)
 const sendInAppNotification = async (alertId) => {
   try {
-    await CycloneAlert.findByIdAndUpdate(alertId, {
-      notificationSent: true,
-      notificationSentAt: new Date(),
-    });
-    return { success: true };
+    const result = await CycloneAlert.findByIdAndUpdate(
+      alertId,
+      {
+        notificationSent: true,
+        notificationSentAt: new Date(),
+      },
+      { new: true }
+    );
+    return { success: true, alert: result };
   } catch (error) {
     console.error('In-app notification error:', error.message);
     return { success: false, error: error.message };
@@ -73,13 +77,15 @@ const sendNotificationWithFallback = async (alert, user) => {
   let smsSent = false;
   let smsDeliveryStatus = 'pending';
 
-  // Send SMS
-  const smsResult = await sendSMS(user.phoneNumber, message);
-  if (smsResult.success) {
-    smsSent = true;
-    smsDeliveryStatus = smsResult.status;
-  } else {
-    smsDeliveryStatus = 'failed';
+  // Send SMS if user has phone number
+  if (user.phoneNumber) {
+    const smsResult = await sendSMS(user.phoneNumber, message);
+    if (smsResult.success) {
+      smsSent = true;
+      smsDeliveryStatus = smsResult.status;
+    } else {
+      smsDeliveryStatus = 'failed';
+    }
   }
 
   // In-app notification is mandatory (alert always created for Alert History)
@@ -113,15 +119,25 @@ const processAlertNotifications = async () => {
       return { processed: 0, successful: 0, failed: 0 };
     }
 
+    console.log(`\nProcessing ${pendingAlerts.length} pending alert(s)...`);
+
     let successful = 0;
     let failed = 0;
 
     for (const alert of pendingAlerts) {
       try {
+        if (!alert.userId) {
+          console.log(`⚠️  Alert ${alert._id}: User not found`);
+          failed++;
+          continue;
+        }
+
         const result = await sendNotificationWithFallback(alert, alert.userId);
         if (result.notificationSent) {
+          console.log(`✓ Alert notification sent for ${alert.cycloneName}`);
           successful++;
         } else {
+          console.log(`✗ Alert notification failed for ${alert.cycloneName}`);
           failed++;
         }
       } catch (error) {
