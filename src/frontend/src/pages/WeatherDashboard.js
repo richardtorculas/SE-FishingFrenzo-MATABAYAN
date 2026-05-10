@@ -131,21 +131,21 @@ const WeatherDashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Try city name geocoding
+      // Resolve coordinates — try static lookup first, then geocoding via backend
       let coords = null;
       let resolvedLabel = loc;
-      const geoRes = await axios.get('https://geocoding-api.open-meteo.com/v1/search', {
-        params: { name: `${loc}, Philippines`, count: 1, language: 'en', format: 'json', countryCode: 'PH' }
-      });
-      const result = geoRes.data.results?.[0];
-      if (result) {
-        coords = { latitude: result.latitude, longitude: result.longitude };
-      } else if (prov && provinceCoordinates[prov]) {
-        // 2. Fall back to static province coordinates
+      if (prov && provinceCoordinates[prov]) {
         coords = { latitude: provinceCoordinates[prov].lat, longitude: provinceCoordinates[prov].lon };
-        resolvedLabel = `${loc} (${prov} area)`;
       } else {
-        throw new Error(`Location "${loc}" not found.`);
+        const geoRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/weather/geocode`, {
+          params: { name: `${loc}, Philippines` }
+        });
+        const result = geoRes.data.results?.[0];
+        if (result) {
+          coords = { latitude: result.latitude, longitude: result.longitude };
+        } else {
+          throw new Error(`Location "${loc}" not found.`);
+        }
       }
       const weatherRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/weather`, {
         params: { latitude: coords.latitude, longitude: coords.longitude, location: resolvedLabel }
