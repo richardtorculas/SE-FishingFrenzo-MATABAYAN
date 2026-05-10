@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Bell, Cloud, Activity, Wind } from 'lucide-react';
+import { Bell, Cloud, Activity, Wind, Zap } from 'lucide-react';
 
 const CardHeader = ({ icon: Icon, title }) => (
   <div className="flex items-center gap-3 mb-5">
@@ -15,7 +15,8 @@ const CardHeader = ({ icon: Icon, title }) => (
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [alerts, setAlerts] = useState([]);
+  const [earthquakeAlerts, setEarthquakeAlerts] = useState([]);
+  const [cycloneAlerts, setCycloneAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
 
@@ -25,13 +26,22 @@ const Dashboard = () => {
 
   const fetchAlerts = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/alerts/logs`,
-        { withCredentials: true }
-      );
+      const [eqRes, cyRes] = await Promise.all([
+        axios.get(
+          `${process.env.REACT_APP_API_URL}/api/alerts/logs`,
+          { withCredentials: true }
+        ),
+        axios.get(
+          `${process.env.REACT_APP_API_URL}/api/cyclone-alerts`,
+          { withCredentials: true }
+        )
+      ]);
       
-      if (response.data.data) {
-        setAlerts(response.data.data);
+      if (eqRes.data.data) {
+        setEarthquakeAlerts(eqRes.data.data);
+      }
+      if (cyRes.data.data) {
+        setCycloneAlerts(cyRes.data.data);
       }
     } catch (error) {
       console.error('Error fetching alerts:', error);
@@ -40,15 +50,24 @@ const Dashboard = () => {
     }
   };
 
-  const markAsRead = async (alertId) => {
+  const markAsRead = async (alertId, type) => {
     try {
       setActionLoading(alertId);
+      const endpoint = type === 'cyclone' 
+        ? `/api/cyclone-alerts/${alertId}/read`
+        : `/api/alerts/${alertId}/read`;
+      
       await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/alerts/${alertId}/read`,
+        `${process.env.REACT_APP_API_URL}${endpoint}`,
         {},
         { withCredentials: true }
       );
-      setAlerts(alerts.map(a => a._id === alertId ? { ...a, read: true, readAt: new Date() } : a));
+      
+      if (type === 'cyclone') {
+        setCycloneAlerts(cycloneAlerts.map(a => a._id === alertId ? { ...a, read: true, readAt: new Date() } : a));
+      } else {
+        setEarthquakeAlerts(earthquakeAlerts.map(a => a._id === alertId ? { ...a, read: true, readAt: new Date() } : a));
+      }
     } catch (error) {
       console.error('Error marking alert as read:', error);
     } finally {
@@ -56,21 +75,33 @@ const Dashboard = () => {
     }
   };
 
-  const dismissAlert = async (alertId) => {
+  const dismissAlert = async (alertId, type) => {
     try {
       setActionLoading(alertId);
+      const endpoint = type === 'cyclone'
+        ? `/api/cyclone-alerts/${alertId}/dismiss`
+        : `/api/alerts/${alertId}/dismiss`;
+      
       await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/alerts/${alertId}/dismiss`,
+        `${process.env.REACT_APP_API_URL}${endpoint}`,
         {},
         { withCredentials: true }
       );
-      setAlerts(alerts.filter(a => a._id !== alertId));
+      
+      if (type === 'cyclone') {
+        setCycloneAlerts(cycloneAlerts.filter(a => a._id !== alertId));
+      } else {
+        setEarthquakeAlerts(earthquakeAlerts.filter(a => a._id !== alertId));
+      }
     } catch (error) {
       console.error('Error dismissing alert:', error);
     } finally {
       setActionLoading(null);
     }
   };
+
+  const allAlerts = [...earthquakeAlerts, ...cycloneAlerts];
+  const activeAlerts = allAlerts.filter(a => !a.dismissed);
 
   return (
     <div className="min-h-screen bg-muted">
@@ -87,16 +118,18 @@ const Dashboard = () => {
           <CardHeader icon={Bell} title="Active Alerts" />
         {loading ? (
             <p className="text-sm text-subtle">Loading alerts...</p>
-          ) : alerts.filter(a => !a.dismissed).length > 0 ? (
+          ) : activeAlerts.length > 0 ? (
             <div className="space-y-3">
-              {alerts.filter(a => !a.dismissed).map((alert) => (
+              {activeAlerts.map((alert) => (
                 <div key={alert._id} className={`border rounded-lg p-4 transition-colors ${
                   alert.read ? 'border-gray-200 bg-gray-50' : 'border-red-200 bg-red-50'
                 }`}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-sm text-ink">Earthquake Alert</h3>
+                        <h3 className="font-semibold text-sm text-ink">
+                          {alert.magnitude ? 'Earthquake Alert' : 'Typhoon Alert'}
+                        </h3>
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           alert.severity === 'critical' ? 'bg-red-100 text-red-800' :
                           alert.severity === 'high' ? 'bg-orange-100 text-orange-800' :
@@ -107,32 +140,62 @@ const Dashboard = () => {
                         </span>
                         {alert.smsSent && <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">SMS Sent</span>}
                       </div>
-                      <div className="grid grid-cols-2 gap-3 text-xs mb-2">
-                        <div>
-                          <span className="text-subtle">Magnitude:</span>
-                          <p className="font-semibold text-ink">{alert.magnitude}</p>
+                      
+                      {/* Earthquake Alert */}
+                      {alert.magnitude && (
+                        <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                          <div>
+                            <span className="text-subtle">Magnitude:</span>
+                            <p className="font-semibold text-ink">{alert.magnitude}</p>
+                          </div>
+                          <div>
+                            <span className="text-subtle">Distance:</span>
+                            <p className="font-semibold text-ink">{alert.distance} km</p>
+                          </div>
+                          <div>
+                            <span className="text-subtle">Depth:</span>
+                            <p className="font-semibold text-ink">{alert.depth} km</p>
+                          </div>
+                          <div>
+                            <span className="text-subtle">Location:</span>
+                            <p className="font-semibold text-ink truncate">{alert.location}</p>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-subtle">Distance:</span>
-                          <p className="font-semibold text-ink">{alert.distance} km</p>
+                      )}
+                      
+                      {/* Cyclone Alert */}
+                      {alert.cycloneName && (
+                        <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                          <div>
+                            <span className="text-subtle">Cyclone:</span>
+                            <p className="font-semibold text-ink">{alert.cycloneName}</p>
+                          </div>
+                          <div>
+                            <span className="text-subtle">Category:</span>
+                            <p className="font-semibold text-ink">{alert.category}</p>
+                          </div>
+                          <div>
+                            <span className="text-subtle">Wind Speed:</span>
+                            <p className="font-semibold text-ink">{alert.windKph} km/h</p>
+                          </div>
+                          <div>
+                            <span className="text-subtle">Location:</span>
+                            <p className="font-semibold text-ink truncate">{alert.location}</p>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-subtle">Depth:</span>
-                          <p className="font-semibold text-ink">{alert.depth} km</p>
-                        </div>
-                        <div>
-                          <span className="text-subtle">Location:</span>
-                          <p className="font-semibold text-ink truncate">{alert.location}</p>
-                        </div>
-                      </div>
+                      )}
+                      
                       <p className="text-xs text-subtle">
-                        Occurred: {new Date(alert.earthquakeTimestamp).toLocaleString()}
+                        {alert.earthquakeTimestamp 
+                          ? `Occurred: ${new Date(alert.earthquakeTimestamp).toLocaleString()}`
+                          : `Trigger: ${alert.triggerReason?.replace(/_/g, ' ').toUpperCase()}`
+                        }
                       </p>
                     </div>
                     <div className="flex gap-2 ml-4">
                       {!alert.read && (
                         <button
-                          onClick={() => markAsRead(alert._id)}
+                          onClick={() => markAsRead(alert._id, alert.cycloneName ? 'cyclone' : 'earthquake')}
                           disabled={actionLoading === alert._id}
                           className="text-xs px-3 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-50"
                         >
@@ -140,7 +203,7 @@ const Dashboard = () => {
                         </button>
                       )}
                       <button
-                        onClick={() => dismissAlert(alert._id)}
+                        onClick={() => dismissAlert(alert._id, alert.cycloneName ? 'cyclone' : 'earthquake')}
                         disabled={actionLoading === alert._id}
                         className="text-xs px-3 py-1 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:opacity-50"
                       >
@@ -165,54 +228,105 @@ const Dashboard = () => {
           <CardHeader icon={Bell} title="Alert History" />
           {loading ? (
             <p className="text-sm text-subtle">Loading history...</p>
-          ) : alerts.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Earthquake Time</th>
-                    <th className="text-left py-3 px-3 font-semibold text-gray-700">Location</th>
-                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Magnitude</th>
-                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Distance</th>
-                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Depth</th>
-                    <th className="text-center py-3 px-3 font-semibold text-gray-700">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {alerts.map((alert) => (
-                    <tr key={alert._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="py-3 px-3 text-xs text-subtle">
-                        {new Date(alert.earthquakeTimestamp).toLocaleString()}
-                      </td>
-                      <td className="py-3 px-3 text-sm text-gray-700 truncate">
-                        {alert.location}
-                      </td>
-                      <td className="py-3 px-3 text-center font-semibold text-ink">
-                        {alert.magnitude}
-                      </td>
-                      <td className="py-3 px-3 text-center text-gray-700">
-                        {alert.distance} km
-                      </td>
-                      <td className="py-3 px-3 text-center text-gray-700">
-                        {alert.depth} km
-                      </td>
-                      <td className="py-3 px-3 text-center">
-                        <span className={`text-xs font-medium px-2 py-1 rounded ${
-                          alert.dismissed ? 'bg-gray-100 text-gray-700' :
-                          alert.read ? 'bg-blue-100 text-blue-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {alert.dismissed ? 'Dismissed' : alert.read ? 'Read' : 'New'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          ) : allAlerts.length > 0 ? (
+            <div className="space-y-4">
+              {/* Earthquake Alerts History */}
+              {earthquakeAlerts.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-600 mb-3 uppercase">Earthquake Alerts</h3>
+                  <div className="overflow-x-auto mb-4">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-200">
+                          <th className="text-left py-3 px-3 font-semibold text-gray-700">Time</th>
+                          <th className="text-left py-3 px-3 font-semibold text-gray-700">Location</th>
+                          <th className="text-center py-3 px-3 font-semibold text-gray-700">Magnitude</th>
+                          <th className="text-center py-3 px-3 font-semibold text-gray-700">Distance</th>
+                          <th className="text-center py-3 px-3 font-semibold text-gray-700">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {earthquakeAlerts.map((alert) => (
+                          <tr key={alert._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td className="py-3 px-3 text-xs text-subtle">
+                              {new Date(alert.earthquakeTimestamp).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-sm text-gray-700 truncate">
+                              {alert.location}
+                            </td>
+                            <td className="py-3 px-3 text-center font-semibold text-ink">
+                              {alert.magnitude}
+                            </td>
+                            <td className="py-3 px-3 text-center text-gray-700">
+                              {alert.distance} km
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className={`text-xs font-medium px-2 py-1 rounded ${
+                                alert.dismissed ? 'bg-gray-100 text-gray-700' :
+                                alert.read ? 'bg-blue-100 text-blue-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {alert.dismissed ? 'Dismissed' : alert.read ? 'Read' : 'New'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Cyclone Alerts History */}
+              {cycloneAlerts.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-600 mb-3 uppercase">Typhoon Alerts</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-200">
+                          <th className="text-left py-3 px-3 font-semibold text-gray-700">Time</th>
+                          <th className="text-left py-3 px-3 font-semibold text-gray-700">Cyclone</th>
+                          <th className="text-left py-3 px-3 font-semibold text-gray-700">Category</th>
+                          <th className="text-center py-3 px-3 font-semibold text-gray-700">Wind Speed</th>
+                          <th className="text-center py-3 px-3 font-semibold text-gray-700">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cycloneAlerts.map((alert) => (
+                          <tr key={alert._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td className="py-3 px-3 text-xs text-subtle">
+                              {new Date(alert.createdAt).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-sm text-gray-700 truncate">
+                              {alert.cycloneName}
+                            </td>
+                            <td className="py-3 px-3 text-sm text-gray-700">
+                              {alert.category}
+                            </td>
+                            <td className="py-3 px-3 text-center font-semibold text-ink">
+                              {alert.windKph} km/h
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className={`text-xs font-medium px-2 py-1 rounded ${
+                                alert.dismissed ? 'bg-gray-100 text-gray-700' :
+                                alert.read ? 'bg-blue-100 text-blue-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {alert.dismissed ? 'Dismissed' : alert.read ? 'Read' : 'New'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-sm text-subtle">
-              No alerts received yet. Alerts will appear here when earthquakes occur near your location.
+              No alerts received yet. Alerts will appear here when earthquakes or typhoons occur near your location.
             </p>
           )}
         </div>
