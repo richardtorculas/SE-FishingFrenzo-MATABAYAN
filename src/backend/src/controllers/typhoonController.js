@@ -130,7 +130,7 @@ const updateTyphoonData = async (req, res) => {
 const getTyphoonStats = async (req, res) => {
   try {
     const [total, highestWind, activeCyclone] = await Promise.all([
-      Typhoon.countDocuments(),
+      Typhoon.countDocuments({ isHistorical: true }),
       Typhoon.findOne().sort({ windKph: -1 }),
       Typhoon.findOne({ isHistorical: false }).sort({ parEntryDate: -1, timestamp: -1 })
     ]);
