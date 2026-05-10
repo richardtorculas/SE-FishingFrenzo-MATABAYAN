@@ -275,8 +275,8 @@ const generateHistoricalTyphoons = () => {
       affectedArea: 'Palawan, Western Visayas',
       isHistorical: true,
       timestamp: new Date('2026-05-15T00:00:00Z'),
-      parEntryDate: '2026-05-15',
-      parExitDate: '2026-05-18',
+      parEntryDate: '2026-01-22',
+      parExitDate: '2026-01-22',
       stormKey: buildStormKey('ADA', 10.0, 118.5, new Date('2026-05-15T00:00:00Z'))
     },
     {
@@ -297,8 +297,8 @@ const generateHistoricalTyphoons = () => {
       affectedArea: 'Eastern Visayas, Mindanao',
       isHistorical: true,
       timestamp: new Date('2026-06-20T00:00:00Z'),
-      parEntryDate: '2026-06-20',
-      parExitDate: '2026-06-23',
+      parEntryDate: '2026-02-03',
+      parExitDate: '2026-02-06',
       stormKey: buildStormKey('BASYANG', 12.0, 125.0, new Date('2026-06-20T00:00:00Z'))
     },
     {

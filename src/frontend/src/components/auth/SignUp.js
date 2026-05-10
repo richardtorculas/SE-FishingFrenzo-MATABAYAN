@@ -85,7 +85,7 @@ const SignUp = () => {
         },
         notificationPreferences: formData.notificationPreferences
       }, { withCredentials: true });
-      login(response.data.data.user);
+      login(response.data.data.user, response.data.token);
       navigate('/dashboard');
     } catch (error) {
       setErrors({ submit: error.response?.data?.message || 'Registration failed. Please try again.' });
