@@ -86,9 +86,8 @@ def verify_login_page_loaded(driver):
     print("  - Verifying login page loaded...")
     wait = WebDriverWait(driver, 20)
     wait.until(EC.url_contains("/login"))
-    # Check for login page specific elements
-    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Welcome Back')]")))
-    time.sleep(1)  # Pause to observe page
+    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'welcome back')]")))
+    time.sleep(1)
     return "/login" in driver.current_url
 
 # ============================================

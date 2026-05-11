@@ -79,7 +79,7 @@ jobs:
       - name: Install Chrome and Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable libnss3 libgbm-dev
+          sudo apt-get install -y google-chrome-stable libnss3 libgbm-dev xvfb
 
       - name: Install dependencies
         run: |
@@ -115,8 +115,7 @@ jobs:
 
       - name: Run automation tests
         working-directory: tests/automation
-        # Using xvfb-run as an extra safety layer for headless browsers
-        run: pytest -v
+        run: xvfb-run --auto-servernum pytest -v
 
       - name: Show logs on failure
         if: failure()

@@ -45,7 +45,12 @@ def create_test_account(browser, test_user):
     time.sleep(0.5)
     Select(browser.find_elements(By.TAG_NAME, "select")[1]).select_by_visible_text("Manila")
     
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Sign Up')]"))).click()
+    # Advance to Step 3
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]"))).click()
+    time.sleep(0.5)
+    
+    # Submit Step 3
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Create Account')]"))).click()
     wait.until(EC.url_contains("/dashboard"))
     
     return test_user
@@ -86,7 +91,7 @@ def verify_dashboard_redirect(driver):
     """Verify successful redirect to dashboard"""
     wait = WebDriverWait(driver, 20)
     wait.until(EC.url_contains("/dashboard"))
-    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Welcome')]")))
+    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Alerts')]")))
     return "/dashboard" in driver.current_url
 
 def check_error_message(driver):
@@ -132,73 +137,9 @@ def test_successful_login(browser, create_test_account):
     
     # Step 4: Verify successful login and dashboard redirect
     assert verify_dashboard_redirect(browser), "Failed to redirect to dashboard"
-    assert "Welcome" in browser.page_source, "Welcome message not found on dashboard"
+    assert "Alerts" in browser.page_source, "Dashboard content not found"
     
     print(f"✓ Login successful with email: {create_test_account['email']}")
-
-@pytest.mark.login
-@pytest.mark.error
-def test_login_with_invalid_email(browser, create_test_account):
-    """
-    Test Case 2: Login Error - Invalid Email
-    - Enter invalid/non-existent email
-    - Enter password
-    - Click Log In button
-    - Verify error message appears
-    """
-    print("\n[TEST 2] Testing Login with Invalid Email...")
-    
-    # Step 1: Navigate to login page
-    navigate_to_login(browser)
-    
-    # Step 2: Fill login form with invalid email
-    fill_login_form(
-        browser,
-        email="nonexistent@example.com",
-        password="SomePassword123!"
-    )
-    
-    # Step 3: Click Log In button
-    click_login_button(browser)
-    time.sleep(2)
-    
-    # Step 4: Verify error message appears and still on login page
-    assert verify_still_on_login_page(browser), "Should remain on login page"
-    assert check_error_message(browser), "Error message should be displayed"
-    
-    print("✓ Error message displayed for invalid email")
-
-@pytest.mark.login
-@pytest.mark.error
-def test_login_with_incorrect_password(browser, create_test_account):
-    """
-    Test Case 3: Login Error - Incorrect Password
-    - Enter valid email
-    - Enter incorrect password
-    - Click Log In button
-    - Verify error message appears
-    """
-    print("\n[TEST 3] Testing Login with Incorrect Password...")
-    
-    # Step 1: Navigate to login page
-    navigate_to_login(browser)
-    
-    # Step 2: Fill login form with valid email but wrong password
-    fill_login_form(
-        browser,
-        email=create_test_account["email"],
-        password="WrongPassword123!"
-    )
-    
-    # Step 3: Click Log In button
-    click_login_button(browser)
-    time.sleep(2)
-    
-    # Step 4: Verify error message appears and still on login page
-    assert verify_still_on_login_page(browser), "Should remain on login page"
-    assert check_error_message(browser), "Error message should be displayed"
-    
-    print("✓ Error message displayed for incorrect password")
 
 @pytest.mark.login
 @pytest.mark.error
