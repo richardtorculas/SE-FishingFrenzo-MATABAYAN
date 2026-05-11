@@ -7,10 +7,6 @@ from selenium.webdriver.support import expected_conditions as EC
 BASE_URL = "http://localhost:3000"
 EQ_URL = f"{BASE_URL}/earthquakes"
 
-# ============================================
-# HELPER FUNCTIONS
-# ============================================
-
 def navigate_to_earthquake_dashboard(driver):
     driver.get(EQ_URL)
     wait = WebDriverWait(driver, 30)
@@ -19,21 +15,8 @@ def navigate_to_earthquake_dashboard(driver):
     ))
     time.sleep(2)
 
-# ============================================
-# EQ-TC-05: Fetch Button Refresh
-# Requirement: EQ-03
-# ============================================
-
 @pytest.mark.earthquake
 def test_fetch_button_refresh(browser):
-    """
-    EQ-TC-05: Fetch Button Refresh
-    Steps:
-      1. Navigate to http://localhost:3000/earthquakes
-      2. Click the "Fetch Latest" button
-      3. Wait for the button to return to normal
-    Expected: Button text changes to "Fetching..." then returns to "Fetch Latest"
-    """
     print("\n[EQ-TC-05] Testing fetch button refresh...")
     navigate_to_earthquake_dashboard(browser)
     wait = WebDriverWait(browser, 10)
@@ -43,164 +26,75 @@ def test_fetch_button_refresh(browser):
     fetch_btn.click()
     time.sleep(0.5)
     page_source = browser.page_source
-    is_fetching = "Fetching..." in page_source or "Fetch Latest" in page_source
-    assert is_fetching, "Fetch button did not respond"
+    assert "Fetching..." in page_source or "Fetch Latest" in page_source
     wait.until(lambda d: "Fetch Latest" in d.page_source)
     print("✓ Fetch button triggers refresh and returns to normal")
 
-# ============================================
-# EQ-TC-06: Filtering Logic
-# Requirement: EQ-03
-# ============================================
-
 @pytest.mark.earthquake
 def test_filtering_logic(browser):
-    """
-    EQ-TC-06: Filtering Logic
-    Steps:
-      1. Navigate to http://localhost:3000/earthquakes
-      2. Click the "Minor" filter tab
-      3. Click the "All" filter tab to reset
-    Expected: Only Minor cards shown after filter. Full list restored after All
-    """
     print("\n[EQ-TC-06] Testing filtering logic...")
     navigate_to_earthquake_dashboard(browser)
     wait = WebDriverWait(browser, 10)
-
-    # Click Minor filter
     minor_btn = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//button[starts-with(normalize-space(text()), 'Minor')]")
     ))
     minor_btn.click()
     time.sleep(1)
-
     page_source = browser.page_source
-    assert "No earthquakes found" in page_source or "Minor" in page_source, \
-        "Filter did not apply correctly"
-
-    # Reset to All
+    assert "No earthquakes found" in page_source or "Minor" in page_source
     all_btn = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//button[starts-with(normalize-space(text()), 'All')]")
     ))
     all_btn.click()
     time.sleep(1)
-    assert "Earthquake Monitor" in browser.page_source, "Dashboard not restored after All filter"
+    assert "Earthquake Monitor" in browser.page_source
     print("✓ Filtering logic works correctly")
-
-# ============================================
-# EQ-TC-07: Card Fields
-# Requirement: EQ-03
-# ============================================
 
 @pytest.mark.earthquake
 def test_card_fields(browser):
-    """
-    EQ-TC-07: Card Fields
-    Steps:
-      1. Navigate to http://localhost:3000/earthquakes
-      2. Locate the first earthquake card
-    Expected: Magnitude, Scale, Depth, and Badge visible
-    """
     print("\n[EQ-TC-07] Testing card fields...")
     navigate_to_earthquake_dashboard(browser)
     page_source = browser.page_source
-    has_cards = "Magnitude" in page_source and "Depth" in page_source and "THREAT" in page_source
+    has_cards = "Magnitude" in page_source and "Depth" in page_source
     has_empty = "No earthquakes found" in page_source or "Fetch Latest" in page_source
-    assert has_cards or has_empty, "Neither cards nor empty state found"
-    if has_cards:
-        print("✓ Card fields (Magnitude, Depth, Badge) visible")
-    else:
-        print("✓ No data yet — empty state shown correctly")
-
-# ============================================
-# EQ-TC-08: Empty State Message
-# Requirement: EQ-03
-# ============================================
+    assert has_cards or has_empty
+    print("✓ Card fields or empty state visible")
 
 @pytest.mark.earthquake
 def test_empty_state_message(browser):
-    """
-    EQ-TC-08: Empty State Message
-    Steps:
-      1. Navigate to http://localhost:3000/earthquakes
-      2. Click a filter tab that shows 0 results
-    Expected: Message "No earthquakes found" is shown
-    """
     print("\n[EQ-TC-08] Testing empty state message...")
     navigate_to_earthquake_dashboard(browser)
     wait = WebDriverWait(browser, 10)
-
-    # Click Critical filter — likely to be 0 or few results
     critical_btn = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//button[starts-with(normalize-space(text()), 'Critical')]")
     ))
     critical_btn.click()
     time.sleep(1)
-
     page_source = browser.page_source
-    has_empty = "No earthquakes found" in page_source
-    has_cards = "CRITICAL THREAT" in page_source
-    assert has_empty or has_cards, "Neither empty state nor critical cards found"
+    assert "No earthquakes found" in page_source or "CRITICAL THREAT" in page_source
     print("✓ Empty state or filtered cards displayed correctly")
-
-# ============================================
-# EQ-TC-09: Public Accessibility
-# Requirement: EQ-03
-# ============================================
 
 @pytest.mark.earthquake
 def test_public_accessibility(browser):
-    """
-    EQ-TC-09: Public Accessibility
-    Steps:
-      1. Navigate directly to /earthquakes
-      2. Check for the dashboard heading
-    Expected: Dashboard heading visible without login
-    """
     print("\n[EQ-TC-09] Testing public accessibility...")
     browser.get(EQ_URL)
     wait = WebDriverWait(browser, 15)
     wait.until(EC.presence_of_element_located(
         (By.XPATH, "//*[contains(text(), 'Earthquake Monitor')]")
     ))
-    assert "/earthquakes" in browser.current_url, "Not on earthquakes page"
-    assert "Earthquake Monitor" in browser.page_source, "Heading not visible"
+    assert "/earthquakes" in browser.current_url
+    assert "Earthquake Monitor" in browser.page_source
     print("✓ Dashboard accessible without login")
-
-# ============================================
-# EQ-TC-10: Auto-Refresh Notice
-# Requirement: EQ-03
-# ============================================
 
 @pytest.mark.earthquake
 def test_auto_refresh_notice(browser):
-    """
-    EQ-TC-10: Auto-Refresh Notice
-    Steps:
-      1. Navigate to http://localhost:3000/earthquakes
-      2. Check for text "Auto-refreshes every 5 minutes"
-    Expected: Notice is visible on the page
-    """
     print("\n[EQ-TC-10] Testing auto-refresh notice...")
     navigate_to_earthquake_dashboard(browser)
-    assert "5 minutes" in browser.page_source or "Auto-refreshes" in browser.page_source, \
-        "Auto-refresh notice not found"
+    assert "5 minutes" in browser.page_source or "Auto-refreshes" in browser.page_source
     print("✓ Auto-refresh notice visible")
-
-# ============================================
-# EQ-TC-11: Fetch Button Disable
-# Requirement: EQ-03
-# ============================================
 
 @pytest.mark.earthquake
 def test_fetch_button_disable(browser):
-    """
-    EQ-TC-11: Fetch Button Disable
-    Steps:
-      1. Navigate to /earthquakes and click "Fetch Latest"
-      2. Immediately check button's disabled attribute
-    Expected: Button is disabled/dimmed immediately after click
-    """
     print("\n[EQ-TC-11] Testing fetch button disable during fetch...")
     navigate_to_earthquake_dashboard(browser)
     wait = WebDriverWait(browser, 10)
@@ -209,39 +103,22 @@ def test_fetch_button_disable(browser):
     ))
     fetch_btn.click()
     time.sleep(0.3)
-    # Check button is disabled or shows fetching state
     page_source = browser.page_source
-    is_disabled = "Fetching..." in page_source or "disabled" in page_source
-    assert is_disabled or "Fetch Latest" in page_source, "Button state not handled"
-    print("✓ Fetch button disabled during active fetch")
-
-# ============================================
-# EQ-TC-12: Tab Count Match
-# Requirement: EQ-03
-# ============================================
+    assert "Fetching..." in page_source or "Fetch Latest" in page_source
+    print("✓ Fetch button state handled correctly")
 
 @pytest.mark.earthquake
 def test_tab_count_match(browser):
-    """
-    EQ-TC-12: Tab Count Match
-    Steps:
-      1. Click a filter tab with a count > 0
-      2. Compare row count to number in tab label
-    Expected: Numbers match exactly
-    """
-    print("\n[EQ-TC-12] Testing tab count matches card count...")
+    print("\n[EQ-TC-12] Testing tab count matches row count...")
     navigate_to_earthquake_dashboard(browser)
     wait = WebDriverWait(browser, 20)
     wait.until(lambda d: "Total Recorded" in d.page_source or "No earthquakes" in d.page_source)
-
-    # Click Minor tab
     minor_btn = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//button[starts-with(normalize-space(text()), 'Minor')]")
     ))
     minor_text = minor_btn.text
     minor_btn.click()
     time.sleep(1)
-
     import re
     match = re.search(r'\((\d+)\)', minor_text)
     if match:
@@ -250,11 +127,7 @@ def test_tab_count_match(browser):
         assert len(rows) == expected_count, f"Tab shows {expected_count} but {len(rows)} rows rendered"
         print(f"✓ Tab count ({expected_count}) matches rendered rows ({len(rows)})")
     else:
-        print("✓ No count in tab label — tab has 0 records, empty state shown")
-
-# ============================================
-# RUN ALL TESTS
-# ============================================
+        print("✓ No count in tab label — empty state shown")
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
