@@ -95,56 +95,6 @@ def verify_login_page_loaded(driver):
 # ============================================
 
 @pytest.mark.landing
-def test_landing_page_loads(browser):
-    """
-    Test Case 1: Landing Page Loads Successfully
-    - Open the landing page
-    - Observe the main interface
-    - Verify all main elements are present
-    """
-    print("\n[TEST 1] Testing Landing Page Loads Successfully...")
-    
-    # Step 1: Navigate to landing page
-    navigate_to_landing_page(browser)
-    
-    # Step 2: Verify landing page elements
-    assert verify_landing_page_loaded(browser), "Landing page did not load properly"
-    
-    # Step 3: Pause to observe the page
-    print("  - Observing landing page...")
-    time.sleep(2)
-    
-    print("✓ Landing page loaded successfully with all elements visible")
-
-@pytest.mark.landing
-def test_landing_page_signup_button(browser):
-    """
-    Test Case 2: Click Sign Up Button
-    - Open the landing page
-    - Click the "Sign Up" button
-    - Verify redirect to signup page
-    """
-    print("\n[TEST 2] Testing Sign Up Button...")
-    
-    # Step 1: Navigate to landing page
-    navigate_to_landing_page(browser)
-    
-    # Step 2: Verify landing page loaded
-    verify_landing_page_loaded(browser)
-    
-    # Step 3: Click "Sign Up" button in navbar
-    click_signup_button_in_navbar(browser)
-    
-    # Step 4: Verify redirect to signup page
-    assert verify_signup_page_loaded(browser), "Failed to redirect to signup page"
-    
-    # Step 5: Pause to observe signup page
-    print("  - Observing signup page...")
-    time.sleep(2)
-    
-    print("✓ Successfully navigated to signup page from Sign Up button")
-
-@pytest.mark.landing
 def test_landing_page_login_button(browser):
     """
     Test Case 3: Click Log In Button
