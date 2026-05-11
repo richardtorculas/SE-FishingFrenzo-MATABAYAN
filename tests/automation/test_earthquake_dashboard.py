@@ -15,7 +15,7 @@ def navigate_to_earthquake_dashboard(driver):
     driver.get(EQ_URL)
     wait = WebDriverWait(driver, 30)
     wait.until(EC.presence_of_element_located(
-        (By.XPATH, "//*[contains(text(), 'PHIVOLCS Earthquake Monitor')]")
+        (By.XPATH, "//*[contains(text(), 'Earthquake Monitor')]")
     ))
     time.sleep(2)
 
@@ -38,9 +38,9 @@ def test_dashboard_header_loads(browser):
     print("\n[EQ-TC-01] Testing dashboard header loads...")
     navigate_to_earthquake_dashboard(browser)
     page_source = browser.page_source
-    assert "PHIVOLCS Earthquake Monitor" in page_source, "Header not found"
+    assert "Earthquake Monitor" in page_source, "Header not found"
     assert "Latest Earthquake Information" in page_source, "Subtitle not found"
-    assert "phivolcs.dost.gov.ph" in page_source or "PHIVOLCS — DOST" in page_source, "PHIVOLCS source link not found"
+    assert "phivolcs.dost.gov.ph" in page_source or "PHIVOLCS" in page_source, "PHIVOLCS source link not found"
     print("✓ Header, subtitle, and source link visible")
 
 # ============================================
@@ -61,7 +61,7 @@ def test_all_four_stat_cards(browser):
     navigate_to_earthquake_dashboard(browser)
     page_source = browser.page_source
     assert "Total Recorded" in page_source,  "Total Recorded stat card missing"
-    assert "Last 24 Hours" in page_source,   "Last 24 Hours stat card missing"
+    assert "Recorded Today" in page_source,  "Recorded Today stat card missing"
     assert "High / Critical" in page_source, "High/Critical stat card missing"
     assert "Tsunami Alerts" in page_source,  "Tsunami Alerts stat card missing"
     print("✓ All four stat cards visible")
@@ -111,7 +111,7 @@ def test_filter_tabs_default(browser):
     # Check "All" button has active style (bg-gray-800 text-white)
     all_btn = browser.find_element(By.XPATH, "//button[normalize-space(text())='All' or starts-with(normalize-space(text()), 'All ')]")
     btn_class = all_btn.get_attribute("class")
-    assert "bg-gray-800" in btn_class or "text-white" in btn_class, "All button does not have active style"
+    assert "bg-ink" in btn_class or "text-white" in btn_class, "All button does not have active style"
     print("✓ All 6 filter tabs visible and All is active by default")
 
 # ============================================
@@ -138,7 +138,7 @@ def test_fetch_button_refresh(browser):
     fetch_btn.click()
     time.sleep(0.5)
     page_source = browser.page_source
-    is_fetching = "Fetching from PHIVOLCS" in page_source or "Fetch Latest" in page_source
+    is_fetching = "Fetching..." in page_source or "Fetch Latest" in page_source
     assert is_fetching, "Fetch button did not respond"
     wait.until(lambda d: "Fetch Latest" in d.page_source)
     print("✓ Fetch button triggers refresh and returns to normal")
@@ -256,10 +256,10 @@ def test_public_accessibility(browser):
     browser.get(EQ_URL)
     wait = WebDriverWait(browser, 15)
     wait.until(EC.presence_of_element_located(
-        (By.XPATH, "//*[contains(text(), 'PHIVOLCS Earthquake Monitor')]")
+        (By.XPATH, "//*[contains(text(), 'Earthquake Monitor')]")
     ))
     assert "/earthquakes" in browser.current_url, "Not on earthquakes page"
-    assert "PHIVOLCS Earthquake Monitor" in browser.page_source, "Heading not visible"
+    assert "Earthquake Monitor" in browser.page_source, "Heading not visible"
     print("✓ Dashboard accessible without login")
 
 # ============================================
@@ -306,7 +306,7 @@ def test_fetch_button_disable(browser):
     time.sleep(0.3)
     # Check button is disabled or shows fetching state
     page_source = browser.page_source
-    is_disabled = "Fetching from PHIVOLCS" in page_source or "disabled" in page_source
+    is_disabled = "Fetching..." in page_source or "disabled" in page_source
     assert is_disabled or "Fetch Latest" in page_source, "Button state not handled"
     print("✓ Fetch button disabled during active fetch")
 

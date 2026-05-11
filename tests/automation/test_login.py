@@ -45,7 +45,12 @@ def create_test_account(browser, test_user):
     time.sleep(0.5)
     Select(browser.find_elements(By.TAG_NAME, "select")[1]).select_by_visible_text("Manila")
     
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Sign Up')]"))).click()
+    # Advance to Step 3
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]"))).click()
+    time.sleep(0.5)
+    
+    # Submit Step 3
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Create Account')]"))).click()
     wait.until(EC.url_contains("/dashboard"))
     
     return test_user

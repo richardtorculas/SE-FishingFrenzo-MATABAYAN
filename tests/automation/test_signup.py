@@ -62,31 +62,29 @@ def click_continue_button(driver):
 def fill_step2_location_info(driver, province, city, language="en"):
     """Fill Step 2: Location Information"""
     wait = WebDriverWait(driver, 20)
-    
-    # Wait for select elements to be present
     wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, "select")))
-    time.sleep(1)  # Brief wait for React state update
-    
-    # Select province
+    time.sleep(1)
     if province:
         province_select = Select(driver.find_elements(By.TAG_NAME, "select")[0])
         province_select.select_by_visible_text(province)
-        time.sleep(0.5)  # Wait for cities to load
-    
-    # Select city
+        time.sleep(0.5)
     if city:
         city_select = Select(driver.find_elements(By.TAG_NAME, "select")[1])
         city_select.select_by_visible_text(city)
-    
-    # Select language (default is English)
     if language == "fil":
         filipino_radio = driver.find_element(By.CSS_SELECTOR, "input[value='fil']")
         filipino_radio.click()
 
-def click_signup_button(driver):
-    """Click the Sign Up button on Step 2"""
+def advance_to_step3(driver):
+    """Click Continue on Step 2 to advance to Step 3"""
     wait = WebDriverWait(driver, 20)
-    signup_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Sign Up')]")))
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]"))).click()
+    time.sleep(0.5)
+
+def click_signup_button(driver):
+    """Click the Create Account button on Step 3"""
+    wait = WebDriverWait(driver, 20)
+    signup_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Create Account')]")))
     signup_btn.click()
 
 def verify_dashboard_redirect(driver):
@@ -142,10 +140,13 @@ def test_successful_signup(browser, unique_email):
         language="en"
     )
     
-    # Step 5: Click Sign Up button
+    # Step 5: Advance to Step 3
+    advance_to_step3(browser)
+    
+    # Step 6: Click Create Account button
     click_signup_button(browser)
     
-    # Step 6: Verify successful registration
+    # Step 7: Verify successful registration
     assert verify_dashboard_redirect(browser), "Failed to redirect to dashboard"
     assert "Welcome" in browser.page_source, "Welcome message not found"
     
@@ -179,6 +180,7 @@ def test_signup_with_existing_email(browser):
     time.sleep(1)
     
     fill_step2_location_info(browser, "Metro Manila", "Manila")
+    advance_to_step3(browser)
     click_signup_button(browser)
     
     # Wait for dashboard
@@ -197,6 +199,7 @@ def test_signup_with_existing_email(browser):
     time.sleep(1)
     
     fill_step2_location_info(browser, "Metro Manila", "Quezon City")
+    advance_to_step3(browser)
     click_signup_button(browser)
     time.sleep(2)
     
@@ -312,7 +315,9 @@ def test_signup_with_blank_location_fields(browser, unique_email):
         language="en"
     )
     
-    click_signup_button(browser)
+    # Try to advance to step 3 — should fail validation
+    wait = WebDriverWait(browser, 10)
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]"))).click()
     time.sleep(1)
     
     # Verify error message appears or still on step 2
