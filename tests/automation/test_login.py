@@ -91,7 +91,7 @@ def verify_dashboard_redirect(driver):
     """Verify successful redirect to dashboard"""
     wait = WebDriverWait(driver, 20)
     wait.until(EC.url_contains("/dashboard"))
-    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Welcome')]")))
+    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Alerts')]")))
     return "/dashboard" in driver.current_url
 
 def check_error_message(driver):
@@ -137,7 +137,7 @@ def test_successful_login(browser, create_test_account):
     
     # Step 4: Verify successful login and dashboard redirect
     assert verify_dashboard_redirect(browser), "Failed to redirect to dashboard"
-    assert "Welcome" in browser.page_source, "Welcome message not found on dashboard"
+    assert "Alerts" in browser.page_source, "Dashboard content not found"
     
     print(f"✓ Login successful with email: {create_test_account['email']}")
 
