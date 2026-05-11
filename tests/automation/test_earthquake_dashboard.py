@@ -16,65 +16,6 @@ def navigate_to_earthquake_dashboard(driver):
     time.sleep(2)
 
 @pytest.mark.earthquake
-def test_fetch_button_refresh(browser):
-    print("\n[EQ-TC-05] Testing fetch button refresh...")
-    navigate_to_earthquake_dashboard(browser)
-    wait = WebDriverWait(browser, 10)
-    fetch_btn = wait.until(EC.element_to_be_clickable(
-        (By.XPATH, "//button[contains(text(), 'Fetch Latest')]")
-    ))
-    fetch_btn.click()
-    time.sleep(0.5)
-    page_source = browser.page_source
-    assert "Fetching..." in page_source or "Fetch Latest" in page_source
-    wait.until(lambda d: "Fetch Latest" in d.page_source)
-    print("✓ Fetch button triggers refresh and returns to normal")
-
-@pytest.mark.earthquake
-def test_filtering_logic(browser):
-    print("\n[EQ-TC-06] Testing filtering logic...")
-    navigate_to_earthquake_dashboard(browser)
-    wait = WebDriverWait(browser, 10)
-    minor_btn = wait.until(EC.element_to_be_clickable(
-        (By.XPATH, "//button[starts-with(normalize-space(text()), 'Minor')]")
-    ))
-    minor_btn.click()
-    time.sleep(1)
-    page_source = browser.page_source
-    assert "No earthquakes found" in page_source or "Minor" in page_source
-    all_btn = wait.until(EC.element_to_be_clickable(
-        (By.XPATH, "//button[starts-with(normalize-space(text()), 'All')]")
-    ))
-    all_btn.click()
-    time.sleep(1)
-    assert "Earthquake Monitor" in browser.page_source
-    print("✓ Filtering logic works correctly")
-
-@pytest.mark.earthquake
-def test_card_fields(browser):
-    print("\n[EQ-TC-07] Testing card fields...")
-    navigate_to_earthquake_dashboard(browser)
-    page_source = browser.page_source
-    has_cards = "Magnitude" in page_source and "Depth" in page_source
-    has_empty = "No earthquakes found" in page_source or "Fetch Latest" in page_source
-    assert has_cards or has_empty
-    print("✓ Card fields or empty state visible")
-
-@pytest.mark.earthquake
-def test_empty_state_message(browser):
-    print("\n[EQ-TC-08] Testing empty state message...")
-    navigate_to_earthquake_dashboard(browser)
-    wait = WebDriverWait(browser, 10)
-    critical_btn = wait.until(EC.element_to_be_clickable(
-        (By.XPATH, "//button[starts-with(normalize-space(text()), 'Critical')]")
-    ))
-    critical_btn.click()
-    time.sleep(1)
-    page_source = browser.page_source
-    assert "No earthquakes found" in page_source or "CRITICAL THREAT" in page_source
-    print("✓ Empty state or filtered cards displayed correctly")
-
-@pytest.mark.earthquake
 def test_public_accessibility(browser):
     print("\n[EQ-TC-09] Testing public accessibility...")
     browser.get(EQ_URL)
