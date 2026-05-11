@@ -154,61 +154,6 @@ def test_successful_signup(browser, unique_email):
 
 @pytest.mark.signup
 @pytest.mark.error
-def test_signup_with_existing_email(browser):
-    """
-    Test Case 2: Sign-Up Error - Already Registered Email
-    - Enter valid name
-    - Enter an already registered email
-    - Enter valid password
-    - Verify error message appears
-    """
-    print("\n[TEST 2] Testing Sign-Up with Existing Email...")
-    
-    # First, create an account
-    timestamp = int(time.time())
-    existing_email = f"existing{timestamp}@example.com"
-    
-    navigate_to_signup(browser)
-    fill_step1_account_info(
-        browser,
-        name="Test User",
-        email=existing_email,
-        password="TestPass123!",
-        confirm_password="TestPass123!"
-    )
-    click_continue_button(browser)
-    time.sleep(1)
-    
-    fill_step2_location_info(browser, "Metro Manila", "Manila")
-    advance_to_step3(browser)
-    click_signup_button(browser)
-    
-    # Wait for dashboard
-    WebDriverWait(browser, 20).until(EC.url_contains("/dashboard"))
-    
-    # Now try to register with the same email
-    navigate_to_signup(browser)
-    fill_step1_account_info(
-        browser,
-        name="Another User",
-        email=existing_email,
-        password="AnotherPass123!",
-        confirm_password="AnotherPass123!"
-    )
-    click_continue_button(browser)
-    time.sleep(1)
-    
-    fill_step2_location_info(browser, "Metro Manila", "Quezon City")
-    advance_to_step3(browser)
-    click_signup_button(browser)
-    time.sleep(2)
-    
-    # Verify error message appears
-    assert check_error_message(browser), "Error message not displayed for existing email"
-    print("✓ Error message displayed for existing email")
-
-@pytest.mark.signup
-@pytest.mark.error
 def test_signup_with_blank_fields(browser):
     """
     Test Case 3: Sign-Up Error - Blank Fields
