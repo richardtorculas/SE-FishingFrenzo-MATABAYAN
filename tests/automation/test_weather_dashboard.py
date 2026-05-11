@@ -13,30 +13,9 @@ LOGIN_URL = f"{BASE_URL}/login"
 # ============================================
 
 @pytest.fixture
-def weather_test_account(browser):
-    """Create a fresh account and return its credentials for weather tests."""
-    from selenium.webdriver.support.ui import Select
-    timestamp = int(time.time())
-    creds = {"email": f"weathertest{timestamp}@example.com", "password": "WeatherPass123!"}
-    wait = WebDriverWait(browser, 30)
-
-    browser.get(f"{BASE_URL}/signup")
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='text']"))).send_keys("Weather Test User")
-    browser.find_element(By.CSS_SELECTOR, "input[type='email']").send_keys(creds["email"])
-    pwd_fields = browser.find_elements(By.CSS_SELECTOR, "input[type='password']")
-    pwd_fields[0].send_keys(creds["password"])
-    pwd_fields[1].send_keys(creds["password"])
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]"))).click()
-
-    wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, "select")))
-    time.sleep(1)
-    Select(browser.find_elements(By.TAG_NAME, "select")[0]).select_by_visible_text("Metro Manila")
-    time.sleep(0.5)
-    Select(browser.find_elements(By.TAG_NAME, "select")[1]).select_by_visible_text("Manila")
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Sign Up')]"))).click()
-    wait.until(EC.url_contains("/dashboard"))
-
-    return creds
+def weather_test_account(shared_weather_account):
+    """Return the shared session-scoped weather test credentials."""
+    return shared_weather_account
 
 # ============================================
 # HELPER FUNCTIONS
@@ -65,7 +44,7 @@ def navigate_to_weather(driver):
 # ============================================
 
 @pytest.mark.weather
-def test_dashboard_header_loads(browser, weather_test_account):
+def test_dashboard_header_loads(browser, weather_test_account):  # noqa: F811
     """
     WR-TC-001: Dashboard Header Loads
     Steps:
@@ -90,7 +69,7 @@ def test_dashboard_header_loads(browser, weather_test_account):
 # ============================================
 
 @pytest.mark.weather
-def test_weather_stat_cards_render(browser, weather_test_account):
+def test_weather_stat_cards_render(browser, weather_test_account):  # noqa: F811
     """
     WR-TC-005: Weather Stat Cards Render Correctly
     Steps:
@@ -128,7 +107,7 @@ def test_weather_stat_cards_render(browser, weather_test_account):
 # ============================================
 
 @pytest.mark.weather
-def test_open_meteo_attribution_footer(browser, weather_test_account):
+def test_open_meteo_attribution_footer(browser, weather_test_account):  # noqa: F811
     """
     WR-TC-007: Open-Meteo Attribution Footer Visible
     Steps:
@@ -153,7 +132,7 @@ def test_open_meteo_attribution_footer(browser, weather_test_account):
 
 @pytest.mark.weather
 @pytest.mark.negative
-def test_invalid_location_shows_error(browser, weather_test_account):
+def test_invalid_location_shows_error(browser, weather_test_account):  # noqa: F811
     """
     WR-TC-011: NEGATIVE — Invalid Location Shows Error Message
     Steps:
